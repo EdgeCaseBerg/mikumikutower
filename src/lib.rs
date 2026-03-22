@@ -1,8 +1,11 @@
+pub mod game_options;
+
+
 pub fn hello() {
 	println!("Hi");
 }
 
-
+extern crate sdl3;
 use sdl3::pixels::Color;
 use sdl3::event::Event;
 use sdl3::keyboard::Keycode;
