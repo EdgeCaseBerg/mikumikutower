@@ -63,8 +63,17 @@ jobs:
         run: |
           choco install cmake -y
 
-      - name: Build (release)
+      - name: Build (mac and Microslop)
+        if: runner.os != 'Linux'
         run: cargo build --release --locked
+
+      - name: Build (Linux with rpath)
+        if: runner.os == 'Linux'
+        run: cargo build --release --locked
+        env:
+          # since we ship .so next to the binary, tell the linker to tell it to resolve those at runtime
+          # and to look within ORIGIN (the directory of the executable)
+          RUSTFLAGS: "-C link-args=-Wl,-rpath,$ORIGIN"        
 
       - name: Prepare dist (Linux)
         if: runner.os == 'Linux'

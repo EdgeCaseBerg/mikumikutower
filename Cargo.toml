@@ -6,7 +6,4 @@ edition = "2024"
 [dependencies]
 sdl3 = { version = "0", features = ["image", "build-from-source"] }
 
-# since we ship .so next to the binary, tell the linker to tell it to resolve those at runtime
-# and to look within ORIGIN (the directory of the executable)
-[profile.release]
-rustflags = ["-C", "link-args=-Wl,-rpath,$ORIGIN"]
+
