@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies for rust install (Linux container only)
         if: runner.os == 'Linux'
         run: |
+          export DEBIAN_FRONTEND=noninteractive
+          # why does ubuntu want to configure tzdata in the middle of a build, idk but its annoying as hell:
+          ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime
           apt-get update
           apt-get install -y curl build-essential pkg-config
 
@@ -42,6 +45,7 @@ jobs:
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
+          export DEBIAN_FRONTEND=noninteractive
           apt-get update
           apt-get install -y \
             build-essential \
