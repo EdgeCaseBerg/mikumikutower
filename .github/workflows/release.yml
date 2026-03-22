@@ -51,7 +51,8 @@ jobs:
             libgl1-mesa-dev \
             libasound2-dev \
             libwayland-dev \
-            libxkbcommon-dev
+            libxkbcommon-dev \
+            libxss-dev
 
       - name: Install dependencies (mac)
         if: runner.os == 'macOS'
