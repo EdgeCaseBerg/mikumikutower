@@ -27,6 +27,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install dependencies for rust install (Linux container only)
+        if: runner.os == 'Linux'
+        run: |
+          apt-get update
+          apt-get install -y curl build-essential pkg-config
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
