@@ -22,6 +22,7 @@ jobs:
             name: windows
 
     runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container || '' }}
 
     steps:
       - uses: actions/checkout@v4
