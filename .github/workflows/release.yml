@@ -15,7 +15,7 @@ jobs:
         include:
           - os: ubuntu-latest
             name: linux
-            container: ubuntu:22.04 # this and forward should work then.
+            container: ubuntu:20.04 # this and forward should work then.
           - os: macos-latest
             name: macos
           - os: windows-latest
