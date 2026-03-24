@@ -1,11 +1,8 @@
 pub mod game_options;
+
 use std::time::Duration;
 
 use crate::game_options::GameOptions;
-
-pub fn hello() {
-    println!("Hi");
-}
 
 extern crate sdl3;
 
