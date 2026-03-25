@@ -3,6 +3,7 @@ pub mod game_options;
 
 use std::time::Duration;
 
+use crate::game::Game;
 use crate::game_options::GameOptions;
 
 extern crate sdl3;
@@ -49,7 +50,7 @@ impl SpriteInfo {
     }
 }
 
-pub fn hello_sdl(game_options: &GameOptions) {
+pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
     let base = get_current_directory().expect("cant get base path");
     let chaim_dir = base.join("assets").join("chaim-vester");
     let portraits = chaim_dir.join("portraits-spritesheet.png");
@@ -93,7 +94,6 @@ pub fn hello_sdl(game_options: &GameOptions) {
     let mut delta = 0;
     'running: loop {
         miku_sprite.advance(delta);
-
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit { .. }
@@ -104,7 +104,12 @@ pub fn hello_sdl(game_options: &GameOptions) {
                 _ => {}
             }
         }
-        // The rest of the game loop goes here...
+        // Game loop!
+        game.update();
+
+        // Updates would go here.
+
+        // Draw
         let [x, y, w, h] = miku_sprite.get_rect_for();
         canvas.clear();
         canvas
@@ -122,6 +127,8 @@ pub fn hello_sdl(game_options: &GameOptions) {
             )
             .expect("failed to draw portrait texture");
         canvas.present();
+
+        //
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
         delta = delta.wrapping_add(1_000_000_000u32 / 60);
     }

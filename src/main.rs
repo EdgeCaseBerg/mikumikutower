@@ -1,6 +1,8 @@
+use mikumikutower::game::Game;
 use mikumikutower::game_options::GameOptions;
 
 fn main() {
     let options = GameOptions::default();
-    mikumikutower::hello_sdl(&options);
+    let mut game = Game::new();
+    mikumikutower::hello_sdl(&options, &mut game);
 }
