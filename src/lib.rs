@@ -80,7 +80,7 @@ pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
         height: 54,
         frames: 6,
         current_frame: 0,
-        framerate_per_second: 1_000_000_000u32 / 15,
+        framerate_per_second: 10,
         delta: 0,
     };
     println!("{:?}", miku_sprite);
@@ -91,9 +91,8 @@ pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
     let texture_sheet_width = portraits_texture.width() - portraits_texture.width() / 7;
     let texture_sheet_height = portraits_texture.height() - portraits_texture.height() / 2;
 
-    let mut delta = 0;
+    let mut delta = 0u32;
     'running: loop {
-        miku_sprite.advance(delta);
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit { .. }
@@ -106,6 +105,7 @@ pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
         }
         // Game loop!
         game.update();
+        miku_sprite.advance(game.tick_loops);
 
         // Updates would go here.
 
@@ -128,8 +128,19 @@ pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
             .expect("failed to draw portrait texture");
         canvas.present();
 
-        //
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
-        delta = delta.wrapping_add(1_000_000_000u32 / 60);
+        if delta < 1_000_000_000 {
+            println!("mode 1");
+            ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 30));
+        } else if delta < 2_000_000_000 {
+            println!("mode 2");
+            ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        } else {
+            println!("mode 3");
+            ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 120));
+        }
+        if delta > 4_000_000_000 {
+            delta = 0;
+        }
+        delta = delta.wrapping_add(1_000_000_000u32 / 30);
     }
 }
