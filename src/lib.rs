@@ -1,5 +1,6 @@
 pub mod game;
 pub mod game_options;
+pub mod renderer;
 
 use std::time::Duration;
 
