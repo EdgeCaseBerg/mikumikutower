@@ -1,3 +1,4 @@
+use std::time::Duration;
 use std::time::Instant;
 
 #[derive(Debug)]
@@ -31,6 +32,8 @@ impl Game {
         // For now let's just do 60hz, we can swap this to vsync mode later on in life.
         // https://gameprogrammingpatterns.com/game-loop.html#stuck-in-the-middle
         let ns_per_update = 1_000_000_000 / 60;
+        // completely arbitrary but would control how much lag is acceptable
+        let max_loops_per_update = 10;
         let current = self.start_time.elapsed().as_nanos();
         let elapsed = current - self.prev_tick;
         self.prev_tick = current;
@@ -38,10 +41,20 @@ impl Game {
         self.lag += elapsed;
         self.tick_loops = 0;
         // TODO: add max loop counter here to bail out to avoid system lags
-        while self.lag >= ns_per_update {
+        while self.lag >= ns_per_update && self.tick_loops < max_loops_per_update {
             self.lag -= ns_per_update;
             self.tick_loops += 1;
         }
+        if self.tick_loops == max_loops_per_update {
+            // TODO prop log library here.
+            eprintln!("Frame skipping detected, attempting to correct by skipping frames ahead");
+            self.prev_tick = self.start_time.elapsed().as_nanos();
+            self.next_tick = self.prev_tick + ns_per_update;
+            self.tick_loops = 0;
+        }
+        // Then this is where we'd call .update per game entity within the current screen/scene
+        // and pass along the lag and call the loop as many times as needed. Potentially we would
+        // also move the coordinates backing drawing along but we'll see about that. 
         println!(
             "Frame time: {:?} {:?}",
             self.lag,
