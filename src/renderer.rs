@@ -34,15 +34,6 @@ pub trait Renderer {
     fn present(&mut self);
 }
 
-pub trait Backend {
-    fn create_event_loop(&self, game_options: &GameOptions) -> Box<dyn BackendEventLoop>;
-}
-
-pub trait BackendEventLoop {
-    fn run(&mut self, game: &mut Game);
-    fn new_renderer(&self, game_options: &GameOptions) -> Box<dyn Renderer>;
-}
-
 // TODO: move to own file once done.
 
 use sdl3::EventPump;
