@@ -54,7 +54,7 @@ impl Game {
         }
         // Then this is where we'd call .update per game entity within the current screen/scene
         // and pass along the lag and call the loop as many times as needed. Potentially we would
-        // also move the coordinates backing drawing along but we'll see about that. 
+        // also move the coordinates backing drawing along but we'll see about that.
         println!(
             "Frame time: {:?} {:?}",
             self.lag,
