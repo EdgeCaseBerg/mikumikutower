@@ -1,3 +1,6 @@
+use crate::renderer::Color;
+use crate::renderer::Renderer;
+
 use std::time::Duration;
 use std::time::Instant;
 
@@ -13,6 +16,16 @@ pub struct Game {
     next_draw_tick: u128,
     should_draw: bool,
     // TODO: current scene and state when we make em
+}
+
+pub struct GameContext {
+    pub renderer: Option<Box<dyn Renderer>>,
+}
+
+impl Default for GameContext {
+    fn default() -> Self {
+        GameContext { renderer: None }
+    }
 }
 
 impl Game {
@@ -98,6 +111,13 @@ impl Game {
             return;
         }
 
-        // Draw the current scene... we need SDL here now
+        let mut renderer = game_context.renderer.as_mut();
+        if let Some(renderer) = renderer {
+            renderer.clear(Color::Black());
+
+            // Draw the things in the scene here!
+
+            renderer.present();
+        }
     }
 }
