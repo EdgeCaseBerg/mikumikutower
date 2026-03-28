@@ -1,4 +1,6 @@
+use crate::backend::*;
 use crate::game::Game;
+use crate::game::GameContext;
 use crate::game_options::GameOptions;
 
 use std::cell::RefCell;
@@ -39,6 +41,8 @@ pub trait Renderer {
 use sdl3::EventPump;
 use sdl3::Sdl;
 use sdl3::VideoSubsystem;
+use sdl3::event::Event;
+use sdl3::keyboard::Keycode;
 use sdl3::render::WindowCanvas;
 use sdl3::video::Window;
 
@@ -92,7 +96,25 @@ pub struct EventLoopSDL3 {
 }
 
 impl BackendEventLoop for EventLoopSDL3 {
-    fn run(&mut self, game: &mut Game) {}
+    fn run(&mut self, game: &mut Game, game_context: &mut GameContext) {
+        'running: loop {
+            // TODO: merge events into state tracking system that doesn't exist yet
+            for event in self.event_pump.poll_iter() {
+                match event {
+                    Event::Quit { .. }
+                    | Event::KeyDown {
+                        keycode: Some(Keycode::Escape),
+                        ..
+                    } => break 'running,
+                    _ => {}
+                }
+            }
+            game.update(game_context);
+
+            game.draw(game_context);
+        }
+    }
+
     fn new_renderer(&self, game_options: &GameOptions) -> Box<dyn Renderer> {
         let r = RendererSDL3 {
             context: self.context.clone(),

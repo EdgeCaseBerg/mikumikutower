@@ -41,7 +41,7 @@ impl Game {
         }
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, game_context: &mut GameContext) {
         // For now let's just do 60hz, we can swap this to vsync mode later on in life.
         // https://gameprogrammingpatterns.com/game-loop.html#stuck-in-the-middle
         let ns_per_update = 1_000_000_000 / 60;
@@ -83,7 +83,7 @@ impl Game {
         );
     }
 
-    pub fn draw(&mut self) {
+    pub fn draw(&mut self, game_context: &mut GameContext) {
         self.should_draw = false;
         // Since game update ticks are independent from render ticks
         // we need to compute the proper amount of lag time for what

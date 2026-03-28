@@ -15,12 +15,9 @@ use sdl3::event::Event;
 use sdl3::filesystem::get_current_directory;
 use sdl3::image::LoadTexture;
 use sdl3::keyboard::Keycode;
-use sdl3::pixels::Color;
-use sdl3::pixels::PixelFormat;
 use sdl3::rect::Rect;
-use sdl3::render::{Canvas, Texture};
-use sdl3::surface::Surface;
-use sdl3::video::Window;
+// use sdl3::render::{Canvas, Texture};
+// use sdl3::surface::Surface;
 
 #[derive(Debug)]
 struct SpriteInfo {
@@ -59,6 +56,10 @@ pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
     let portraits = chaim_dir.join("portraits-spritesheet.png");
     let miku = base.join("assets").join("dance.png");
 
+    // let backend = init_backend(&game_options);
+    // let event_loop = backend.create_event_loop(&game_options);
+    let mut game_context = crate::game::GameContext::default();
+
     let sdl_context = sdl3::init().expect("failed to init SDL");
     let video_subsystem = sdl_context.video().expect("failed to get video context");
 
@@ -88,13 +89,12 @@ pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
     };
     println!("{:?}", miku_sprite);
 
-    canvas.set_draw_color(Color::RGB(0, 255, 255));
+    canvas.set_draw_color(sdl3::pixels::Color::RGB(0, 255, 255));
     canvas.clear();
     let mut event_pump = sdl_context.event_pump().unwrap();
     let texture_sheet_width = portraits_texture.width() - portraits_texture.width() / 7;
     let texture_sheet_height = portraits_texture.height() - portraits_texture.height() / 2;
 
-    let mut delta = 0u32;
     'running: loop {
         for event in event_pump.poll_iter() {
             match event {
@@ -107,8 +107,12 @@ pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
             }
         }
         // Game loop!
-        game.update();
+        game.update(&mut game_context);
+        // If we were to check inputs, we may be trying to move to the next scene.
+        // so once we have the concept of a scene we should if let Some() = next_scene
+        // here, reset the loop and frame time, and then draw.
         miku_sprite.advance(game.tick_loops);
+        game.draw(&mut game_context);
 
         // Updates would go here.
 
@@ -131,19 +135,7 @@ pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
             .expect("failed to draw portrait texture");
         canvas.present();
 
-        if delta < 1_000_000_000 {
-            println!("mode 1");
-            ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 30));
-        } else if delta < 2_000_000_000 {
-            println!("mode 2");
-            ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
-        } else {
-            println!("mode 3");
-            ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 120));
-        }
-        if delta > 4_000_000_000 {
-            delta = 0;
-        }
-        delta = delta.wrapping_add(1_000_000_000u32 / 30);
+        // we should be able to remove this after we get draw setup properly
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
 }
