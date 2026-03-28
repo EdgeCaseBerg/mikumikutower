@@ -14,6 +14,17 @@ pub struct Color {
     pub a: f32,
 }
 
+impl Color {
+    pub const fn Black() -> Color {
+        Color {
+            r: 0.0,
+            g: 0.0,
+            b: 0.0,
+            a: 1.0,
+        }
+    }
+}
+
 // Generic trait that we'll make an SDL version of for fun.
 // and in order to be able to write code in a generic way while
 // swapping out graphics library for fun as needed.
