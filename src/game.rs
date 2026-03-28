@@ -68,6 +68,36 @@ impl Game {
             self.prev_tick < self.next_tick,
             self.tick_loops
         );
-        // now we're ready to render
+    }
+
+    pub fn draw(&mut self) {
+        self.should_draw = false;
+        // Since game update ticks are independent from render ticks
+        // we need to compute the proper amount of lag time for what
+        // to show to the user.
+
+        // TODO: Move to shared state assuming we'd update game and render per update the same.
+        let ns_per_update = 1_000_000_000 / 60;
+
+        let current = self.start_time.elapsed().as_nanos();
+
+        // If we're already past the time to draw, then align the next tick to the current time
+        if current > self.next_draw_tick + ns_per_update {
+            self.next_draw_tick = current;
+        }
+
+        // if we're not past the time to draw, advance by update rate until it's time to render.
+        while self.start_time.elapsed().as_nanos() >= self.next_draw_tick {
+            self.next_draw_tick += ns_per_update;
+            self.should_draw = true;
+        }
+
+        if !self.should_draw {
+            // Arbitrary constant for now.
+            ::std::thread::sleep(Duration::from_millis(2));
+            return;
+        }
+
+        // Draw the current scene... we need SDL here now
     }
 }
