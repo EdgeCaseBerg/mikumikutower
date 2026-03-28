@@ -1,9 +1,11 @@
+pub mod backend;
 pub mod game;
 pub mod game_options;
 pub mod renderer;
 
 use std::time::Duration;
 
+use crate::backend::init_backend;
 use crate::game::Game;
 use crate::game_options::GameOptions;
 
