@@ -35,7 +35,7 @@ impl Color {
 }
 
 impl Color {
-    pub const fn Black() -> Color {
+    pub const fn black() -> Color {
         Color {
             r: 0.0,
             g: 0.0,

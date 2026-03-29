@@ -113,7 +113,7 @@ impl Game {
 
         let mut renderer = game_context.renderer.as_mut();
         if let Some(renderer) = renderer {
-            renderer.clear(Color::Black());
+            renderer.clear(Color::black());
 
             // Draw the things in the scene here!
 
