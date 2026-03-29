@@ -181,10 +181,9 @@ impl Renderer for RendererSDL3 {
     }
 
     fn clear(&mut self, color: Color) {
-        // color conversion
+        // color conversion is a TODO
         let mut ctx = self.context.borrow_mut();
-        ctx.window_canvas
-            .set_draw_color(sdl3::pixels::Color::RGB(0, 255, 255));
+        ctx.window_canvas.set_draw_color(color.to_sdl3());
         ctx.window_canvas.clear();
     }
 
