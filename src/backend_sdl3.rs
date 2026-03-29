@@ -113,3 +113,10 @@ impl Renderer for RendererSDL3 {
         ctx.window_canvas.present();
     }
 }
+
+impl Color {
+    pub fn to_sdl3(&self) -> sdl3::pixels::Color {
+        let (r, g, b, a) = (*self).into();
+        sdl3::pixels::Color::RGBA(r, g, b, a)
+    }
+}

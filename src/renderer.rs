@@ -22,13 +22,6 @@ impl From<Color> for (u8, u8, u8, u8) {
 }
 
 impl Color {
-    pub fn to_sdl3(&self) -> sdl3::pixels::Color {
-        let (r, g, b, a) = (*self).into();
-        sdl3::pixels::Color::RGBA(r, g, b, a)
-    }
-}
-
-impl Color {
     pub const fn black() -> Color {
         Color {
             r: 0.0,
