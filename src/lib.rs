@@ -1,4 +1,5 @@
 pub mod backend;
+pub mod backend_sdl3;
 pub mod game;
 pub mod game_options;
 pub mod renderer;

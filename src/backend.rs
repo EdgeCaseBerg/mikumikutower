@@ -15,6 +15,6 @@ pub trait BackendEventLoop {
 pub fn init_backend(game_options: &GameOptions) -> Box<dyn Backend> {
     // There is only one backend to init right now but this is where we could
     // do fun #if(config) type things in the future if need be!
-    use crate::renderer::BackendSDL3;
+    use crate::backend_sdl3::BackendSDL3;
     Box::new(BackendSDL3::new(game_options))
 }
