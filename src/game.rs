@@ -70,19 +70,19 @@ impl Game {
         // Then this is where we'd call .update per game entity within the current screen/scene
         // and pass along the lag and call the loop as many times as needed. Potentially we would
         // also move the coordinates backing drawing along but we'll see about that.
-        println!(
-            "Frame time: {:?} {:?}",
-            self.lag,
-            self.lag as f32 / ns_per_update as f32
-        );
-        println!(
-            "elapsed: {:?} prev: {}, next: {}, time_is_not_warped: {} loops {}",
-            elapsed,
-            self.prev_tick,
-            self.next_tick,
-            self.prev_tick < self.next_tick,
-            self.tick_loops
-        );
+        // println!(
+        //     "Frame time: {:?} {:?}",
+        //     self.lag,
+        //     self.lag as f32 / ns_per_update as f32
+        // );
+        // println!(
+        //     "elapsed: {:?} prev: {}, next: {}, time_is_not_warped: {} loops {}",
+        //     elapsed,
+        //     self.prev_tick,
+        //     self.next_tick,
+        //     self.prev_tick < self.next_tick,
+        //     self.tick_loops
+        // );
 
         let scene = self.scene.as_mut();
         if let Some(scene) = scene {
