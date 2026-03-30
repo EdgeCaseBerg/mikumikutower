@@ -27,7 +27,6 @@ impl Default for TestScene {
 
 impl Scene for TestScene {
     fn init(&mut self, game_context: &mut GameContext) {
-
         // TODO: we'll move the texture ids out to constants to match up with the backend renderer load calls in renderer
         let miku = SpriteInfo {
             start_x: 0,
@@ -71,7 +70,7 @@ impl Scene for TestScene {
         for (id, sprite) in self.sprites.iter() {
             let (x, y) = match id {
                 0 => (200, 600),
-                _ => (0, 0)
+                _ => (0, 0),
             };
             let src = sprite.get_rect();
             renderer.send_command(RenderCommand::DrawRect {

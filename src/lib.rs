@@ -52,6 +52,11 @@ impl SpriteInfo {
         let x_offset = self.start_x + self.width * self.current_frame;
         [x_offset, self.start_y, self.width, self.height]
     }
+
+    fn get_rect(&self) -> crate::renderer::Rect {
+        let [x, y, w, h] = self.get_rect_for();
+        crate::renderer::Rect::new(x as isize, y as isize, w as isize, h as isize)
+    }
 }
 
 pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
