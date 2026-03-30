@@ -3,12 +3,15 @@ pub mod backend_sdl3;
 pub mod game;
 pub mod game_options;
 pub mod renderer;
+pub mod scene;
 
 use std::time::Duration;
 
 use crate::backend::init_backend;
 use crate::game::Game;
 use crate::game_options::GameOptions;
+use crate::scene::Scene;
+use crate::scene::TestScene;
 
 extern crate sdl3;
 

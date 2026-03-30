@@ -1,10 +1,10 @@
 use crate::renderer::Color;
 use crate::renderer::Renderer;
+use crate::scene::Scene;
 
 use std::time::Duration;
 use std::time::Instant;
 
-#[derive(Debug)]
 pub struct Game {
     start_time: Instant,
     // counters to track game updates on a fixed interval with catch up
@@ -16,6 +16,7 @@ pub struct Game {
     next_draw_tick: u128,
     should_draw: bool,
     // TODO: current scene and state when we make em
+    pub scene: Option<Box<dyn Scene>>,
 }
 
 pub struct GameContext {
@@ -38,6 +39,7 @@ impl Game {
             lag: 0,
             next_draw_tick: 0,
             should_draw: false,
+            scene: None,
         }
     }
 
@@ -81,6 +83,11 @@ impl Game {
             self.prev_tick < self.next_tick,
             self.tick_loops
         );
+
+        let scene = self.scene.as_mut();
+        if let Some(scene) = scene {
+            scene.update(self.tick_loops, game_context);
+        }
     }
 
     pub fn draw(&mut self, game_context: &mut GameContext) {
@@ -111,13 +118,24 @@ impl Game {
             return;
         }
 
-        let mut renderer = game_context.renderer.as_mut();
-        if let Some(renderer) = renderer {
-            renderer.clear(Color::black());
+        // This seems very silly and annoying to have to do this twice
+        {
+            let mut renderer = game_context.renderer.as_mut();
+            if let Some(renderer) = renderer {
+                renderer.clear(Color::black());
+            }
+        }
 
-            // Draw the things in the scene here!
+        let scene = self.scene.as_mut();
+        if let Some(scene) = scene {
+            scene.draw(game_context);
+        }
 
-            renderer.present();
+        {
+            let mut renderer = game_context.renderer.as_mut();
+            if let Some(renderer) = renderer {
+                renderer.present();
+            }
         }
     }
 }
