@@ -146,6 +146,7 @@ impl BackendEventLoop for EventLoopSDL3 {
     fn new_renderer(&self, game_options: &GameOptions) -> Box<dyn Renderer> {
         let r = RendererSDL3 {
             context: self.context.clone(),
+            commands: Vec::with_capacity(32),
         };
         Box::new(r)
     }
@@ -153,6 +154,33 @@ impl BackendEventLoop for EventLoopSDL3 {
 
 struct RendererSDL3 {
     context: Rc<RefCell<SDL3Context>>,
+    commands: Vec<RenderCommand>,
+}
+
+impl RendererSDL3 {
+    // Internally used before presenting. Drains all commands
+    // in order to enque all the work to SDL3 that we want done
+    // per frame.
+    fn process_commands(&mut self) {
+        for cmd in self.commands.drain(..) {
+            match cmd {
+                RenderCommand::DrawRect {
+                    texture_id,
+                    source,
+                    destination,
+                } => {
+                    let ctx = &mut *self.context.borrow_mut();
+                    if let Some(texture) = ctx.textures.get_texture(texture_id) {
+                        let src: sdl3::rect::Rect = source.into();
+                        let dst: sdl3::rect::Rect = destination.into();
+                        ctx.window_canvas
+                            .copy(texture, src, dst)
+                            .expect(&format!("failed to draw texture {}", texture_id));
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl Renderer for RendererSDL3 {
@@ -167,8 +195,13 @@ impl Renderer for RendererSDL3 {
     }
 
     fn present(&mut self) {
+        self.process_commands();
         let mut ctx = self.context.borrow_mut();
         ctx.window_canvas.present();
+    }
+
+    fn send_command(&mut self, cmd: RenderCommand) {
+        self.commands.push(cmd);
     }
 }
 
@@ -176,5 +209,11 @@ impl Color {
     pub fn to_sdl3(&self) -> sdl3::pixels::Color {
         let (r, g, b, a) = (*self).into();
         sdl3::pixels::Color::RGBA(r, g, b, a)
+    }
+}
+
+impl From<Rect> for sdl3::rect::Rect {
+    fn from(r: Rect) -> Self {
+        sdl3::rect::Rect::new(r.x as i32, r.y as i32, r.width as u32, r.height as u32)
     }
 }

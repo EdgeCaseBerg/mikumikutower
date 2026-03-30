@@ -37,6 +37,7 @@ impl Color {
 // swapping out graphics library for fun as needed.
 pub trait Renderer {
     fn name(&self) -> String;
+    fn send_command(&mut self, cmd: RenderCommand);
     fn clear(&mut self, color: Color);
     fn present(&mut self);
 }
