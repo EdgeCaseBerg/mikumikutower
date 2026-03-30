@@ -125,7 +125,6 @@ pub struct EventLoopSDL3 {
 
 impl BackendEventLoop for EventLoopSDL3 {
     fn run(&mut self, game: &mut Game, game_context: &mut GameContext) {
-
         let scene = game.scene.as_mut();
         if let Some(scene) = scene {
             scene.init(game_context);

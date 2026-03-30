@@ -1,4 +1,3 @@
-
 use std::ops::{Add, Sub};
 
 // Colors are defined in sRGB within 0.0 - 1.0
