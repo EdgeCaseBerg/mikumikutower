@@ -1,28 +1,71 @@
 use crate::backend::*;
-use crate::renderer::{ Renderer, Color };
 use crate::game::Game;
 use crate::game::GameContext;
 use crate::game_options::GameOptions;
+use crate::renderer::{Color, Rect, RenderCommand, Renderer};
 
 use std::cell::RefCell;
+use std::collections::HashMap;
+use std::path::PathBuf;
 use std::rc::Rc;
-
 
 use sdl3::EventPump;
 use sdl3::Sdl;
 use sdl3::VideoSubsystem;
 use sdl3::event::Event;
+use sdl3::filesystem::get_current_directory;
+use sdl3::image::LoadTexture;
 use sdl3::keyboard::Keycode;
+use sdl3::render::Texture;
+use sdl3::render::TextureCreator;
 use sdl3::render::WindowCanvas;
-// use sdl3::video::Window;
+use sdl3::video::WindowContext;
 
 pub struct BackendSDL3 {
     sdl: Sdl,
 }
 
+type SDL3Texture = Texture<'static>;
+
 pub struct SDL3Context {
     video: VideoSubsystem,
     window_canvas: WindowCanvas,
+    textures: SDL3Textures,
+}
+
+pub struct SDL3Textures {
+    texture_creator: TextureCreator<WindowContext>,
+    texture_by_id: HashMap<usize, SDL3Texture>,
+}
+
+impl SDL3Textures {
+    fn from(texture_creator: TextureCreator<WindowContext>) -> Self {
+        SDL3Textures {
+            texture_creator,
+            texture_by_id: HashMap::new(),
+        }
+    }
+
+    fn get_texture(&self, texture_id: usize) -> Option<&SDL3Texture> {
+        self.texture_by_id.get(&texture_id)
+    }
+
+    fn load(&mut self, id: usize, path: PathBuf) {
+        let tex = self.texture_creator.load_texture(path).unwrap();
+        let tex = unsafe { make_static(tex) };
+        self.texture_by_id.insert(id, tex);
+    }
+}
+
+// Alchemy! we do this to shunt off the lifetime the sdl3 lib sets on the textures.
+// both it and we know that its lifetime is tied to the texture_creator, but they
+// didn't represent this by defining a lifetime on the creator, and we don't need to
+// care or worry about this because the texture_creator is owned by SDL3Textures and
+// so when it goes out of scope it can drop everything. I imagine I might need to
+// implement a Drop for SDL3Textures to make sure that happens, but then again, its
+// dropping point is _probably_ going to be the end of the program so...
+unsafe fn make_static(tex: Texture) -> Texture<'static> {
+    unsafe { std::mem::transmute(tex) }
 }
 
 impl BackendSDL3 {
@@ -49,11 +92,26 @@ impl Backend for BackendSDL3 {
             .build()
             .expect("failed to build window");
 
+        let canvas = window.into_canvas();
+        let mut textures = SDL3Textures::from(canvas.texture_creator());
+
+        // TODO: should probably move this out somewhere else
+        let base = get_current_directory().expect("cant get base path");
+        let base = base.join(game_options.assets_path.clone());
+        let chaim_dir = base.join("chaim-vester");
+        let portraits = chaim_dir.join("portraits-spritesheet.png");
+        let miku = base.join("dance.png");
+
+        // TODO: move constants out somewhere re-useable and referenceable
+        textures.load(0, miku);
+        textures.load(1, portraits);
+
         let e = EventLoopSDL3 {
             event_pump,
             context: Rc::new(RefCell::new(SDL3Context {
                 video: video_subsystem,
-                window_canvas: window.into_canvas(),
+                window_canvas: canvas,
+                textures,
             })),
         };
         Box::new(e)
