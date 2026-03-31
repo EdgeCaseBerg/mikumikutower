@@ -29,13 +29,18 @@ type SDL3Texture = Texture<'static>;
 
 pub struct SDL3Context {
     video: VideoSubsystem,
-    window_canvas: WindowCanvas,
+    // Note: textures MUST be declared ABOVE window_canvas because
+    // drop order is top to bottom and all textures need to be dropped
+    // BEFORE the canvas is dropped
     textures: SDL3Textures,
+    window_canvas: WindowCanvas,
 }
 
 pub struct SDL3Textures {
-    texture_creator: TextureCreator<WindowContext>,
     texture_by_id: HashMap<usize, SDL3Texture>,
+    // ORDER OF STRUCT IS IMPORTANT BECAUSE OF DROP ORDER
+    // WE DROP THE TEXTURES PRIOR TO THE CREATOR GOING AWAY
+    texture_creator: TextureCreator<WindowContext>,
 }
 
 impl SDL3Textures {
