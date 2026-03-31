@@ -57,7 +57,7 @@ impl SDL3Textures {
 
     fn load(&mut self, id: usize, path: PathBuf) {
         let tex = self.texture_creator.load_texture(path).unwrap();
-        let tex = unsafe { make_static(tex) };
+        let tex = make_static(tex);
         self.texture_by_id.insert(id, tex);
     }
 }
@@ -71,7 +71,7 @@ impl SDL3Textures {
 // dropping point is _probably_ going to be the end of the program so... eh.
 // The SDL3 docs says we should destroy it when we're done https://wiki.libsdl.org/SDL3_image/IMG_LoadTexture
 //
-unsafe fn make_static(tex: Texture) -> Texture<'static> {
+fn make_static(tex: Texture) -> Texture<'static> {
     unsafe { std::mem::transmute(tex) }
 }
 
