@@ -28,12 +28,12 @@ pub struct BackendSDL3 {
 type SDL3Texture = Texture<'static>;
 
 pub struct SDL3Context {
-    video: VideoSubsystem,
     // Note: textures MUST be declared ABOVE window_canvas because
     // drop order is top to bottom and all textures need to be dropped
     // BEFORE the canvas is dropped
     textures: SDL3Textures,
     window_canvas: WindowCanvas,
+    video: VideoSubsystem,
 }
 
 pub struct SDL3Textures {
