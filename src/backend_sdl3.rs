@@ -68,7 +68,9 @@ impl SDL3Textures {
 // care or worry about this because the texture_creator is owned by SDL3Textures and
 // so when it goes out of scope it can drop everything. I imagine I might need to
 // implement a Drop for SDL3Textures to make sure that happens, but then again, its
-// dropping point is _probably_ going to be the end of the program so...
+// dropping point is _probably_ going to be the end of the program so... eh.
+// The SDL3 docs says we should destroy it when we're done https://wiki.libsdl.org/SDL3_image/IMG_LoadTexture
+//
 unsafe fn make_static(tex: Texture) -> Texture<'static> {
     unsafe { std::mem::transmute(tex) }
 }
