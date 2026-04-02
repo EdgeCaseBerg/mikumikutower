@@ -116,7 +116,6 @@ impl Backend for BackendSDL3 {
         let mut textures = SDL3Textures::from(canvas.texture_creator());
         textures.init(&game_options);
 
-
         let e = EventLoopSDL3 {
             event_pump,
             context: Rc::new(RefCell::new(SDL3Context {
