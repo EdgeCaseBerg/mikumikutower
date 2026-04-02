@@ -11,7 +11,7 @@ use crate::backend::init_backend;
 use crate::game::Game;
 use crate::game_options::GameOptions;
 use crate::scene::Scene;
-use crate::scene::TestScene;
+use crate::scene::loading_scene::TestScene;
 
 extern crate sdl3;
 
