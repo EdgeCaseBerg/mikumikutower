@@ -60,6 +60,19 @@ impl SDL3Textures {
         let tex = make_static(tex);
         self.texture_by_id.insert(id, tex);
     }
+
+    fn init(&mut self, game_options: &GameOptions) {
+        // TODO: should probably move this out somewhere else
+        let base = get_current_directory().expect("cant get base path");
+        let base = base.join(game_options.assets_path.clone());
+        let chaim_dir = base.join("chaim-vester");
+        let portraits = chaim_dir.join("portraits-spritesheet.png");
+        let miku = base.join("dance.png");
+
+        // TODO: move constants out somewhere re-useable and referenceable
+        self.load(0, miku);
+        self.load(1, portraits);
+    }
 }
 
 // Alchemy! we do this to shunt off the lifetime the sdl3 lib sets on the textures.
@@ -101,17 +114,8 @@ impl Backend for BackendSDL3 {
 
         let canvas = window.into_canvas();
         let mut textures = SDL3Textures::from(canvas.texture_creator());
+        textures.init(&game_options);
 
-        // TODO: should probably move this out somewhere else
-        let base = get_current_directory().expect("cant get base path");
-        let base = base.join(game_options.assets_path.clone());
-        let chaim_dir = base.join("chaim-vester");
-        let portraits = chaim_dir.join("portraits-spritesheet.png");
-        let miku = base.join("dance.png");
-
-        // TODO: move constants out somewhere re-useable and referenceable
-        textures.load(0, miku);
-        textures.load(1, portraits);
 
         let e = EventLoopSDL3 {
             event_pump,
