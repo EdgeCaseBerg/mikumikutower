@@ -2,7 +2,8 @@ use crate::backend::*;
 use crate::game::Game;
 use crate::game::GameContext;
 use crate::game_options::GameOptions;
-use crate::renderer::{Color, Rect, RenderCommand, Renderer};
+use crate::Rect;
+use crate::renderer::{Color, RenderCommand, Renderer};
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -89,7 +90,7 @@ fn make_static(tex: Texture) -> Texture<'static> {
 }
 
 impl BackendSDL3 {
-    pub fn new(game_options: &GameOptions) -> Self {
+    pub fn new(_game_options: &GameOptions) -> Self {
         let sdl_handle = sdl3::init().expect("failed to init SDL");
         BackendSDL3 { sdl: sdl_handle }
     }
@@ -97,7 +98,7 @@ impl BackendSDL3 {
 
 impl Backend for BackendSDL3 {
     fn create_event_loop(&self, game_options: &GameOptions) -> Box<dyn BackendEventLoop> {
-        let mut event_pump = self.sdl.event_pump().unwrap();
+        let event_pump = self.sdl.event_pump().unwrap();
 
         let video_subsystem = self.sdl.video().expect("failed to get video context");
 
@@ -157,7 +158,7 @@ impl BackendEventLoop for EventLoopSDL3 {
         }
     }
 
-    fn new_renderer(&self, game_options: &GameOptions) -> Box<dyn Renderer> {
+    fn new_renderer(&self, _game_options: &GameOptions) -> Box<dyn Renderer> {
         let r = RendererSDL3 {
             context: self.context.clone(),
             commands: Vec::with_capacity(32),

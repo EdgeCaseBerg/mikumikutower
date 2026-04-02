@@ -1,8 +1,7 @@
 use crate::Scene;
 use crate::SpriteInfo;
-use crate::game::Game;
 use crate::game::GameContext;
-use crate::renderer::Rect;
+use crate::Rect;
 use crate::renderer::RenderCommand;
 
 pub struct TestScene {
@@ -19,7 +18,7 @@ impl Default for TestScene {
 }
 
 impl Scene for TestScene {
-    fn init(&mut self, game_context: &mut GameContext) {
+    fn init(&mut self, _game_context: &mut GameContext) {
         // TODO: we'll move the texture ids out to constants to match up with the backend renderer load calls in renderer
         let miku = SpriteInfo {
             start_x: 0,
@@ -50,7 +49,7 @@ impl Scene for TestScene {
 
         // }
     }
-    fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
+    fn update(&mut self, ticks: u32, _game_context: &mut GameContext) {
         for (_, sprite) in self.sprites.iter_mut() {
             sprite.advance(ticks);
         }

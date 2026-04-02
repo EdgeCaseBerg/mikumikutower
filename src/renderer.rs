@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub};
+use crate::Rect;
 
 // Colors are defined in sRGB within 0.0 - 1.0
 // While SDL provides one of these, for future proofing against playing with other renderers, define our own.
@@ -39,28 +39,6 @@ pub trait Renderer {
     fn send_command(&mut self, cmd: RenderCommand);
     fn clear(&mut self, color: Color);
     fn present(&mut self);
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct Rect<T: PartialOrd + Copy + Add<Output = T> + Sub<Output = T> = isize> {
-    pub x: T,
-    pub y: T,
-    pub width: T,
-    pub height: T,
-}
-
-impl<T: PartialOrd + Copy + Add<Output = T> + Sub<Output = T>> Rect<T> {
-    // (x, y) are the corner from which width and height expand from (x + width = x2, similar for y)
-    // so its the bottom left corner in a positive coordinate space and the top left in a quadrant 4 space (like most images)
-    #[inline(always)]
-    pub fn new(x: T, y: T, width: T, height: T) -> Rect<T> {
-        Rect {
-            x,
-            y,
-            width,
-            height,
-        }
-    }
 }
 
 pub enum RenderCommand {

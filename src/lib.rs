@@ -5,7 +5,7 @@ pub mod game_options;
 pub mod renderer;
 pub mod scene;
 
-use std::time::Duration;
+use std::ops::{Add, Sub};
 
 use crate::backend::init_backend;
 use crate::game::Game;
@@ -14,14 +14,6 @@ use crate::scene::Scene;
 use crate::scene::loading::TestScene;
 
 extern crate sdl3;
-
-use sdl3::event::Event;
-use sdl3::filesystem::get_current_directory;
-use sdl3::image::LoadTexture;
-use sdl3::keyboard::Keycode;
-use sdl3::rect::Rect;
-// use sdl3::render::{Canvas, Texture};
-// use sdl3::surface::Surface;
 
 #[derive(Debug)]
 struct SpriteInfo {
@@ -53,18 +45,35 @@ impl SpriteInfo {
         [x_offset, self.start_y, self.width, self.height]
     }
 
-    fn get_rect(&self) -> crate::renderer::Rect {
+    fn get_rect(&self) -> Rect {
         let [x, y, w, h] = self.get_rect_for();
-        crate::renderer::Rect::new(x as isize, y as isize, w as isize, h as isize)
+        Rect::new(x as isize, y as isize, w as isize, h as isize)
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Rect<T: PartialOrd + Copy + Add<Output = T> + Sub<Output = T> = isize> {
+    pub x: T,
+    pub y: T,
+    pub width: T,
+    pub height: T,
+}
+
+impl<T: PartialOrd + Copy + Add<Output = T> + Sub<Output = T>> Rect<T> {
+    // (x, y) are the corner from which width and height expand from (x + width = x2, similar for y)
+    // so its the bottom left corner in a positive coordinate space and the top left in a quadrant 4 space (like most images)
+    #[inline(always)]
+    pub fn new(x: T, y: T, width: T, height: T) -> Rect<T> {
+        Rect {
+            x,
+            y,
+            width,
+            height,
+        }
     }
 }
 
 pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
-    // let base = get_current_directory().expect("cant get base path");
-    // let chaim_dir = base.join("assets").join("chaim-vester");
-    // let portraits = chaim_dir.join("portraits-spritesheet.png");
-    // let miku = base.join("assets").join("dance.png");
-
     let backend = init_backend(&game_options);
     let mut event_loop = backend.create_event_loop(&game_options);
     let mut game_context = crate::game::GameContext::default();
@@ -72,84 +81,4 @@ pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
     game_context.renderer = Some(renderer);
     game.scene = Some(Box::new(TestScene::default()));
     event_loop.run(game, &mut game_context);
-
-    // let sdl_context = sdl3::init().expect("failed to init SDL");
-    // let video_subsystem = sdl_context.video().expect("failed to get video context");
-
-    // let window = video_subsystem
-    //     .window(
-    //         "Miku Miku Tower",
-    //         game_options.window_width,
-    //         game_options.window_height,
-    //     )
-    //     .position_centered()
-    //     .build()
-    //     .expect("failed to build window");
-
-    // let mut canvas = window.into_canvas();
-    // let texture_creator = canvas.texture_creator();
-    // let portraits_texture = texture_creator.load_texture(portraits).unwrap();
-    // let miku_texture = texture_creator.load_texture(miku).unwrap();
-    // let mut miku_sprite = SpriteInfo {
-    //     start_x: 0,
-    //     start_y: 0,
-    //     width: 71,
-    //     height: 54,
-    //     frames: 6,
-    //     current_frame: 0,
-    //     framerate_per_second: 10,
-    //     delta: 0,
-    // };
-    // println!("{:?}", miku_sprite);
-
-    // canvas.set_draw_color(sdl3::pixels::Color::RGB(0, 255, 255));
-    // canvas.clear();
-    // let mut event_pump = sdl_context.event_pump().unwrap();
-    // let texture_sheet_width = portraits_texture.width() - portraits_texture.width() / 7;
-    // let texture_sheet_height = portraits_texture.height() - portraits_texture.height() / 2;
-
-    // eprintln!("{} {}", texture_sheet_width, texture_sheet_height);
-    // 'running: loop {
-    //     for event in event_pump.poll_iter() {
-    //         match event {
-    //             Event::Quit { .. }
-    //             | Event::KeyDown {
-    //                 keycode: Some(Keycode::Escape),
-    //                 ..
-    //             } => break 'running,
-    //             _ => {}
-    //         }
-    //     }
-    //     // Game loop!
-    //     game.update(&mut game_context);
-    //     // If we were to check inputs, we may be trying to move to the next scene.
-    //     // so once we have the concept of a scene we should if let Some() = next_scene
-    //     // here, reset the loop and frame time, and then draw.
-    //     miku_sprite.advance(game.tick_loops);
-    //     game.draw(&mut game_context);
-
-    //     // Updates would go here.
-
-    //     // Draw
-    //     let [x, y, w, h] = miku_sprite.get_rect_for();
-    //     canvas.clear();
-    //     canvas
-    //         .copy(
-    //             &miku_texture,
-    //             Rect::new(x as i32, y as i32, w, h),
-    //             Rect::new(200, 600, w, h),
-    //         )
-    //         .expect("failed to draw portrait texture");
-    //     canvas
-    //         .copy(
-    //             &portraits_texture,
-    //             Rect::new(0, 0, texture_sheet_width, texture_sheet_height),
-    //             Rect::new(0, 0, texture_sheet_width, texture_sheet_height),
-    //         )
-    //         .expect("failed to draw portrait texture");
-    //     canvas.present();
-
-    //     // we should be able to remove this after we get draw setup properly
-    //     ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
-    // }
 }

@@ -120,7 +120,7 @@ impl Game {
 
         // This seems very silly and annoying to have to do this twice
         {
-            let mut renderer = game_context.renderer.as_mut();
+            let renderer = game_context.renderer.as_mut();
             if let Some(renderer) = renderer {
                 renderer.clear(Color::black());
             }
@@ -132,7 +132,7 @@ impl Game {
         }
 
         {
-            let mut renderer = game_context.renderer.as_mut();
+            let renderer = game_context.renderer.as_mut();
             if let Some(renderer) = renderer {
                 renderer.present();
             }
