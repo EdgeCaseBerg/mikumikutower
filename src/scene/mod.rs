@@ -4,7 +4,7 @@ use crate::game::GameContext;
 use crate::renderer::Rect;
 use crate::renderer::RenderCommand;
 
-pub mod loading_scene;
+pub mod loading;
 
 pub trait Scene {
     fn init(&mut self, game_context: &mut GameContext) {}
