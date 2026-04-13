@@ -1,7 +1,7 @@
+use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
 use crate::game::GameContext;
-use crate::Rect;
 use crate::renderer::RenderCommand;
 
 pub struct TestScene {

@@ -1,8 +1,8 @@
+use crate::Rect;
 use crate::backend::*;
 use crate::game::Game;
 use crate::game::GameContext;
 use crate::game_options::GameOptions;
-use crate::Rect;
 use crate::renderer::{Color, RenderCommand, Renderer};
 
 use std::cell::RefCell;
@@ -115,7 +115,7 @@ impl Backend for BackendSDL3 {
 
         let canvas = window.into_canvas();
         let mut textures = SDL3Textures::from(canvas.texture_creator());
-        textures.init(&game_options);
+        textures.init(game_options);
 
         let e = EventLoopSDL3 {
             event_pump,
@@ -190,7 +190,9 @@ impl RendererSDL3 {
                         let dst: sdl3::rect::Rect = destination.into();
                         ctx.window_canvas
                             .copy(texture, src, dst)
-                            .expect(&format!("failed to draw texture {}", texture_id));
+                            .unwrap_or_else(|_| {
+                                let _ = &format!("failed to draw texture {}", texture_id);
+                            });
                     }
                 }
             }
