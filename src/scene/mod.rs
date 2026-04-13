@@ -1,5 +1,6 @@
 use crate::game::GameContext;
 
+pub mod level;
 pub mod loading;
 
 pub trait Scene {
