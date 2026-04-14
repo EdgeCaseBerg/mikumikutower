@@ -16,7 +16,7 @@ use crate::scene::loading::TestScene;
 
 extern crate sdl3;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct SpriteInfo {
     start_x: u32,
     start_y: u32,
