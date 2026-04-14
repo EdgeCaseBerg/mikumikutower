@@ -1,4 +1,9 @@
 use crate::Rect;
+use crate::Scene;
+use crate::SpriteInfo;
+use crate::constants::{TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, TEXTURE_ID_PORTRAIT};
+use crate::game::GameContext;
+use crate::renderer::RenderCommand;
 
 #[derive(Debug, Clone)]
 enum TowerState {
@@ -18,10 +23,38 @@ impl Health {
     }
 }
 
+impl Default for Health {
+    fn default() -> Health {
+        let max = 10;
+        Health { current: max, max }
+    }
+}
+
 #[derive(Debug)]
 struct Base {
     position: Rect,
     health: Health,
+    sprite_info: SpriteInfo, // a miku sprite
+}
+
+impl Default for Base {
+    fn default() -> Base {
+        Base {
+            position: Rect::new(1, 2, 64, 64),
+            health: Health::default(),
+            sprite_info: SpriteInfo {
+                // corresponds to TEXTURE_ID_MIKU (should we do a sprite for constant helper?)
+                start_x: 0,
+                start_y: 0,
+                width: 71,
+                height: 54,
+                frames: 6,
+                current_frame: 0,
+                framerate_per_second: 10,
+                delta: 0,
+            },
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -29,7 +62,8 @@ struct Tower {
     position: Rect,
     state: TowerState,
     range: u16, // 65535 should be enough
-                // Add types later or some such thing.
+    // Add types later or some such thing.
+    sprite_info: SpriteInfo, // a leek sprite for now
 }
 
 impl Tower {
@@ -38,6 +72,66 @@ impl Tower {
             position,
             state: TowerState::Ready,
             range: 5, // TODO: revisit once we decide how big our gameboard is
+            sprite_info: SpriteInfo {
+                start_x: 0,
+                start_y: 0,
+                width: 32,
+                height: 32,
+                frames: 1,
+                current_frame: 0,
+                framerate_per_second: 60,
+                delta: 0,
+            },
         }
+    }
+}
+
+pub struct LevelScene {
+    base: Base,
+    towers: Vec<Tower>,
+    grass: SpriteInfo,
+    road: SpriteInfo,
+}
+
+// TODO: both base and rect right now are x,y in world coordinates w,h in screen. we should fix that up.
+impl Default for LevelScene {
+    fn default() -> LevelScene {
+        let initial_towers = vec![Tower::basic(Rect::new(16, 16, 32, 32))];
+        LevelScene {
+            base: Base::default(),
+            towers: initial_towers,
+            grass: SpriteInfo {
+                start_x: 64,
+                start_y: 0,
+                width: 32,
+                height: 32,
+                frames: 1,
+                current_frame: 0,
+                framerate_per_second: 60,
+                delta: 0,
+            },
+            road: SpriteInfo {
+                start_x: 32,
+                start_y: 0,
+                width: 32,
+                height: 32,
+                frames: 1,
+                current_frame: 0,
+                framerate_per_second: 60,
+                delta: 0,
+            },
+        }
+    }
+}
+
+impl Scene for LevelScene {
+    fn init(&mut self, game_context: &mut GameContext) {}
+
+    fn update(&mut self, ticks: u32, game_context: &mut GameContext) {}
+
+    fn draw(&mut self, game_context: &mut GameContext) {
+        let Some(ref mut renderer) = game_context.renderer else {
+            return;
+        };
     }
 }

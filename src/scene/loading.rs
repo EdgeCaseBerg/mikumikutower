@@ -1,12 +1,9 @@
 use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
+use crate::constants::{TEXTURE_ID_MIKU, TEXTURE_ID_PORTRAIT};
 use crate::game::GameContext;
 use crate::renderer::RenderCommand;
-use crate::constants::{
-    TEXTURE_ID_MIKU,
-    TEXTURE_ID_PORTRAIT
-};
 
 pub struct TestScene {
     // TODO: probably move sprite info around or something... but for now, test scene!
