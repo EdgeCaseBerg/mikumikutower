@@ -3,6 +3,10 @@ use crate::Scene;
 use crate::SpriteInfo;
 use crate::game::GameContext;
 use crate::renderer::RenderCommand;
+use crate::constants::{
+    TEXTURE_ID_MIKU,
+    TEXTURE_ID_PORTRAIT
+};
 
 pub struct TestScene {
     // TODO: probably move sprite info around or something... but for now, test scene!
@@ -30,7 +34,7 @@ impl Scene for TestScene {
             framerate_per_second: 10,
             delta: 0,
         };
-        self.sprites.push((0, miku));
+        self.sprites.push((TEXTURE_ID_MIKU, miku));
 
         let portrait = SpriteInfo {
             start_x: 0,
@@ -42,7 +46,7 @@ impl Scene for TestScene {
             framerate_per_second: 60,
             delta: 0,
         };
-        self.sprites.push((1, portrait));
+        self.sprites.push((TEXTURE_ID_PORTRAIT, portrait));
 
         // TODO: call load here instead maybe?
         // if Some(renderer) = game_context.renderer {
@@ -61,7 +65,7 @@ impl Scene for TestScene {
 
         for (id, sprite) in self.sprites.iter() {
             let (x, y) = match id {
-                0 => (200, 600),
+                &TEXTURE_ID_MIKU => (200, 600),
                 _ => (0, 0),
             };
             let src = sprite.get_rect();

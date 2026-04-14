@@ -4,6 +4,7 @@ use crate::game::Game;
 use crate::game::GameContext;
 use crate::game_options::GameOptions;
 use crate::renderer::{Color, RenderCommand, Renderer};
+use crate::constants::*;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -69,10 +70,14 @@ impl SDL3Textures {
         let chaim_dir = base.join("chaim-vester");
         let portraits = chaim_dir.join("portraits-spritesheet.png");
         let miku = base.join("dance.png");
+        let my_assets = base.join("made-by-me");
+        let leeksheet = my_assets.join("leek-bg1-bg2.png");
 
         // TODO: move constants out somewhere re-useable and referenceable
-        self.load(0, miku);
-        self.load(1, portraits);
+        // TODO: make a load texture command to decouple backend_sdl3 from game details
+        self.load(TEXTURE_ID_MIKU, miku);
+        self.load(TEXTURE_ID_PORTRAIT, portraits);
+        self.load(TEXTURE_ID_LEEKSHEET, leeksheet);
     }
 }
 

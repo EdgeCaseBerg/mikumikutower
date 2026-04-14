@@ -1,3 +1,4 @@
+pub mod constants;
 pub mod backend;
 pub mod backend_sdl3;
 pub mod game;
