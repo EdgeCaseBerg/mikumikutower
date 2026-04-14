@@ -1,10 +1,10 @@
 use crate::Rect;
 use crate::backend::*;
+use crate::constants::*;
 use crate::game::Game;
 use crate::game::GameContext;
 use crate::game_options::GameOptions;
 use crate::renderer::{Color, RenderCommand, Renderer};
-use crate::constants::*;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
