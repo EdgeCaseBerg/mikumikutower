@@ -156,22 +156,21 @@ impl Scene for LevelScene {
                 source: src,
                 destination: cell,
             });
-            if r == 16 && c == 3 {
-                let src = self.base.sprite_info.get_rect();
-                renderer.send_command(RenderCommand::DrawRect {
-                    texture_id: TEXTURE_ID_MIKU,
-                    source: src,
-                    destination: cell,
-                });
-            }
-            if r == 15 && c == 26 {
-                let src = Tower::basic(cell).sprite_info.get_rect();
-                renderer.send_command(RenderCommand::DrawRect {
-                    texture_id: TEXTURE_ID_LEEKSHEET,
-                    source: src,
-                    destination: cell,
-                });
-            }
         }
+        let cell = layout.cell_rect(16, 3);
+        let src = self.base.sprite_info.get_rect();
+        renderer.send_command(RenderCommand::DrawRect {
+            texture_id: TEXTURE_ID_MIKU,
+            source: src,
+            destination: cell,
+        });
+
+        let cell = layout.cell_rect(15, 26);
+        let src = Tower::basic(cell).sprite_info.get_rect();
+        renderer.send_command(RenderCommand::DrawRect {
+            texture_id: TEXTURE_ID_LEEKSHEET,
+            source: src,
+            destination: cell,
+        });
     }
 }
