@@ -13,6 +13,7 @@ use crate::backend::init_backend;
 use crate::game::Game;
 use crate::game_options::GameOptions;
 use crate::scene::Scene;
+use crate::scene::level::LevelScene;
 use crate::scene::loading::TestScene;
 
 extern crate sdl3;
@@ -82,5 +83,6 @@ pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
     let renderer = event_loop.new_renderer(game_options);
     game_context.renderer = Some(renderer);
     game.scene = Some(Box::new(TestScene::default()));
+    game.scene = Some(Box::new(LevelScene::default()));
     event_loop.run(game, &mut game_context);
 }
