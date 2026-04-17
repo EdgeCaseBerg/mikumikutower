@@ -1,7 +1,9 @@
 use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
-use crate::constants::{TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, TEXTURE_ID_PORTRAIT};
+use crate::constants::{
+    TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, sprite_info_grass, sprite_info_leek, sprite_info_road,
+};
 use crate::game::GameContext;
 use crate::grid_layout::GridLayout;
 use crate::renderer::RenderCommand;
@@ -73,16 +75,7 @@ impl Tower {
             position,
             state: TowerState::Ready,
             range: 5, // TODO: revisit once we decide how big our gameboard is
-            sprite_info: SpriteInfo {
-                start_x: 0,
-                start_y: 0,
-                width: 32,
-                height: 32,
-                frames: 1,
-                current_frame: 0,
-                framerate_per_second: 60,
-                delta: 0,
-            },
+            sprite_info: sprite_info_leek(),
         }
     }
 }
@@ -101,26 +94,8 @@ impl Default for LevelScene {
         LevelScene {
             base: Base::default(),
             towers: initial_towers,
-            grass: SpriteInfo {
-                start_x: 64,
-                start_y: 0,
-                width: 32,
-                height: 32,
-                frames: 1,
-                current_frame: 0,
-                framerate_per_second: 60,
-                delta: 0,
-            },
-            road: SpriteInfo {
-                start_x: 32,
-                start_y: 0,
-                width: 32,
-                height: 32,
-                frames: 1,
-                current_frame: 0,
-                framerate_per_second: 60,
-                delta: 0,
-            },
+            grass: sprite_info_grass(),
+            road: sprite_info_road(),
         }
     }
 }
