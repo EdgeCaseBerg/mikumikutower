@@ -3,6 +3,7 @@ pub mod backend_sdl3;
 pub mod constants;
 pub mod game;
 pub mod game_options;
+pub mod grid_layout;
 pub mod renderer;
 pub mod scene;
 
