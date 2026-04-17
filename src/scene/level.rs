@@ -3,6 +3,7 @@ use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, TEXTURE_ID_PORTRAIT};
 use crate::game::GameContext;
+use crate::grid_layout::GridLayout;
 use crate::renderer::RenderCommand;
 
 #[derive(Debug, Clone)]
@@ -127,11 +128,42 @@ impl Default for LevelScene {
 impl Scene for LevelScene {
     fn init(&mut self, game_context: &mut GameContext) {}
 
-    fn update(&mut self, ticks: u32, game_context: &mut GameContext) {}
+    fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
+        self.grass.advance(ticks);
+        self.road.advance(ticks);
+        self.base.sprite_info.advance(ticks);
+    }
 
     fn draw(&mut self, game_context: &mut GameContext) {
         let Some(ref mut renderer) = game_context.renderer else {
             return;
         };
+
+        let layout = GridLayout {
+            area: Rect::new(0, 0, 1280, 720),
+            rows: 18,
+            columns: 32,
+            cell_gap: 0,
+        };
+        for (r, c, cell) in layout.iter_cells() {
+            let src = match (r, c) {
+                (16, c) if c > 3 && c < 28 => self.road.get_rect(),
+                (r, 27) if r >= 0 && r < 16 => self.road.get_rect(),
+                _ => self.grass.get_rect(),
+            };
+            renderer.send_command(RenderCommand::DrawRect {
+                texture_id: TEXTURE_ID_LEEKSHEET,
+                source: src,
+                destination: cell,
+            });
+            if r == 16 && c == 3 {
+                let src = self.base.sprite_info.get_rect();
+                renderer.send_command(RenderCommand::DrawRect {
+                    texture_id: TEXTURE_ID_MIKU,
+                    source: src,
+                    destination: cell,
+                });
+            }
+        }
     }
 }
