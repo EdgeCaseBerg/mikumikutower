@@ -164,6 +164,14 @@ impl Scene for LevelScene {
                     destination: cell,
                 });
             }
+            if r == 15 && c == 26 {
+                let src = Tower::basic(cell).sprite_info.get_rect();
+                renderer.send_command(RenderCommand::DrawRect {
+                    texture_id: TEXTURE_ID_LEEKSHEET,
+                    source: src,
+                    destination: cell,
+                });
+            }
         }
     }
 }
