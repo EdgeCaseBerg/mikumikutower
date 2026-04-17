@@ -42,8 +42,8 @@ impl GridLayout {
         );
 
         Rect {
-            x: origin.0,
-            y: origin.1,
+            x: origin.0 + offset.0,
+            y: origin.1 + offset.1,
             width: cell.0,
             height: cell.1,
         }
