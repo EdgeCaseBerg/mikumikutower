@@ -42,3 +42,16 @@ pub const fn sprite_info_road() -> SpriteInfo {
         delta: 0,
     }
 }
+
+pub const fn sprite_info_miku() -> SpriteInfo {
+    SpriteInfo {
+        start_x: 0,
+        start_y: 0,
+        width: 71,
+        height: 54,
+        frames: 6,
+        current_frame: 0,
+        framerate_per_second: 10,
+        delta: 0,
+    }
+}

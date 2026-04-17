@@ -2,7 +2,8 @@ use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{
-    TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, sprite_info_grass, sprite_info_leek, sprite_info_road,
+    TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, sprite_info_grass, sprite_info_leek, sprite_info_miku,
+    sprite_info_road,
 };
 use crate::game::GameContext;
 use crate::grid_layout::GridLayout;
@@ -45,17 +46,7 @@ impl Default for Base {
         Base {
             position: Rect::new(1, 2, 64, 64),
             health: Health::default(),
-            sprite_info: SpriteInfo {
-                // corresponds to TEXTURE_ID_MIKU (should we do a sprite for constant helper?)
-                start_x: 0,
-                start_y: 0,
-                width: 71,
-                height: 54,
-                frames: 6,
-                current_frame: 0,
-                framerate_per_second: 10,
-                delta: 0,
-            },
+            sprite_info: sprite_info_miku(),
         }
     }
 }
