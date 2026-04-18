@@ -44,7 +44,7 @@ struct Base {
 impl Default for Base {
     fn default() -> Base {
         Base {
-            position: Rect::new(1, 2, 64, 64),
+            position: Rect::new(3, 16, 32, 32),
             health: Health::default(),
             sprite_info: sprite_info_miku(),
         }
@@ -81,7 +81,7 @@ pub struct LevelScene {
 // TODO: both base and rect right now are x,y in world coordinates w,h in screen. we should fix that up.
 impl Default for LevelScene {
     fn default() -> LevelScene {
-        let initial_towers = vec![Tower::basic(Rect::new(15, 26, 32, 32))];
+        let initial_towers = vec![Tower::basic(Rect::new(26, 15, 32, 32))];
         LevelScene {
             base: Base::default(),
             towers: initial_towers,
@@ -123,7 +123,7 @@ impl Scene for LevelScene {
                 destination: cell,
             });
         }
-        let cell = layout.cell_rect(16, 3);
+        let cell = layout.cell_rect(self.base.position.y as usize, self.base.position.x as usize);
         let src = self.base.sprite_info.get_rect();
         renderer.send_command(RenderCommand::DrawRect {
             texture_id: TEXTURE_ID_MIKU,
@@ -132,7 +132,7 @@ impl Scene for LevelScene {
         });
 
         for tower in self.towers.iter() {
-            let cell = layout.cell_rect(tower.position.x as usize, tower.position.y as usize);
+            let cell = layout.cell_rect(tower.position.y as usize, tower.position.x as usize);
             let src = tower.sprite_info.get_rect();
             renderer.send_command(RenderCommand::DrawRect {
                 texture_id: TEXTURE_ID_LEEKSHEET,
