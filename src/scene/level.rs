@@ -98,6 +98,9 @@ impl Scene for LevelScene {
         self.grass.advance(ticks);
         self.road.advance(ticks);
         self.base.sprite_info.advance(ticks);
+        for mut tower in &mut self.towers {
+            tower.sprite_info.advance(ticks);
+        }
     }
 
     fn draw(&mut self, game_context: &mut GameContext) {
