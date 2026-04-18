@@ -81,7 +81,7 @@ pub struct LevelScene {
 // TODO: both base and rect right now are x,y in world coordinates w,h in screen. we should fix that up.
 impl Default for LevelScene {
     fn default() -> LevelScene {
-        let initial_towers = vec![Tower::basic(Rect::new(16, 16, 32, 32))];
+        let initial_towers = vec![Tower::basic(Rect::new(15, 26, 32, 32))];
         LevelScene {
             base: Base::default(),
             towers: initial_towers,
@@ -114,7 +114,7 @@ impl Scene for LevelScene {
         for (r, c, cell) in layout.iter_cells() {
             let src = match (r, c) {
                 (16, c) if c > 3 && c < 28 => self.road.get_rect(),
-                (r, 27) if r >= 0 && r < 16 => self.road.get_rect(),
+                (r, 27) if r < 16 => self.road.get_rect(),
                 _ => self.grass.get_rect(),
             };
             renderer.send_command(RenderCommand::DrawRect {
@@ -131,12 +131,14 @@ impl Scene for LevelScene {
             destination: cell,
         });
 
-        let cell = layout.cell_rect(15, 26);
-        let src = Tower::basic(cell).sprite_info.get_rect();
-        renderer.send_command(RenderCommand::DrawRect {
-            texture_id: TEXTURE_ID_LEEKSHEET,
-            source: src,
-            destination: cell,
-        });
+        for tower in self.towers.iter() {
+            let cell = layout.cell_rect(tower.position.x as usize, tower.position.y as usize);
+            let src = tower.sprite_info.get_rect();
+            renderer.send_command(RenderCommand::DrawRect {
+                texture_id: TEXTURE_ID_LEEKSHEET,
+                source: src,
+                destination: cell,
+            });
+        }
     }
 }
