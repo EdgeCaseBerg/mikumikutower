@@ -155,6 +155,9 @@ impl BackendEventLoop for EventLoopSDL3 {
                         keycode: Some(Keycode::Escape),
                         ..
                     } => break 'running,
+                    Event::MouseMotion {mousestate, x, y, xrel, yrel, ..} => {
+                        eprintln!("{:?} {} {} {} {}", mousestate, x, y, xrel, yrel);
+                    }
                     _ => {}
                 }
             }
