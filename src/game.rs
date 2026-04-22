@@ -19,13 +19,43 @@ pub struct Game {
     pub scene: Option<Box<dyn Scene>>,
 }
 
+pub struct MouseContext {
+    pub left_clicked: bool,
+    pub right_clicked: bool,
+    pub position: Option<(f32, f32)>,
+}
+
+impl Default for MouseContext {
+    fn default() -> Self {
+        Self {
+            left_clicked: false,
+            right_clicked: false,
+            position: None,
+        }
+    }
+}
+
+impl MouseContext {
+    pub fn update(&mut self, left: bool, right: bool, position: Option<(f32, f32)>)  {
+        self.left_clicked = left;
+        self.right_clicked = right;
+        self.position = position;
+    }
+}
+
 pub struct GameContext {
     pub renderer: Option<Box<dyn Renderer>>,
+    pub mouse_context: MouseContext,
+    pub screen_size: (u32, u32),
 }
 
 impl Default for GameContext {
     fn default() -> Self {
-        GameContext { renderer: None }
+        GameContext {
+            renderer: None,
+            mouse_context: MouseContext::default(),
+            screen_size: (1280, 720),
+        }
     }
 }
 

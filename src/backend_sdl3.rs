@@ -163,6 +163,7 @@ impl BackendEventLoop for EventLoopSDL3 {
                         yrel,
                         ..
                     } => {
+                        game_context.mouse_context.update(mousestate.left(), mousestate.right(), Some((x, y)));
                         eprintln!("{:?} {} {} {} {}", mousestate, x, y, xrel, yrel);
                     }
                     Event::Window { win_event, .. } => {
