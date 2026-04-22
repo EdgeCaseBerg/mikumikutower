@@ -14,7 +14,7 @@ use std::rc::Rc;
 use sdl3::EventPump;
 use sdl3::Sdl;
 use sdl3::VideoSubsystem;
-use sdl3::event::Event;
+use sdl3::event::{Event, WindowEvent};
 use sdl3::filesystem::get_current_directory;
 use sdl3::image::LoadTexture;
 use sdl3::keyboard::Keycode;
@@ -157,7 +157,16 @@ impl BackendEventLoop for EventLoopSDL3 {
                     } => break 'running,
                     Event::MouseMotion {mousestate, x, y, xrel, yrel, ..} => {
                         eprintln!("{:?} {} {} {} {}", mousestate, x, y, xrel, yrel);
-                    }
+                    },
+                    Event::Window { win_event, ..} => {
+                        match win_event {
+                            WindowEvent::Resized(w, h) => {
+                                // TODO handle resizing
+                                eprintln!("WindowEvent::Resized(w,h) ({}, {})", w, h);
+                            },
+                            _ => {},
+                        }
+                    },
                     _ => {}
                 }
             }
