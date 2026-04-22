@@ -155,18 +155,25 @@ impl BackendEventLoop for EventLoopSDL3 {
                         keycode: Some(Keycode::Escape),
                         ..
                     } => break 'running,
-                    Event::MouseMotion {mousestate, x, y, xrel, yrel, ..} => {
+                    Event::MouseMotion {
+                        mousestate,
+                        x,
+                        y,
+                        xrel,
+                        yrel,
+                        ..
+                    } => {
                         eprintln!("{:?} {} {} {} {}", mousestate, x, y, xrel, yrel);
-                    },
-                    Event::Window { win_event, ..} => {
+                    }
+                    Event::Window { win_event, .. } => {
                         match win_event {
                             WindowEvent::Resized(w, h) => {
                                 // TODO handle resizing
                                 eprintln!("WindowEvent::Resized(w,h) ({}, {})", w, h);
-                            },
-                            _ => {},
+                            }
+                            _ => {}
                         }
-                    },
+                    }
                     _ => {}
                 }
             }
