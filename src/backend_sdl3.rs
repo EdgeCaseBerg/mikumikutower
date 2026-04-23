@@ -115,6 +115,7 @@ impl Backend for BackendSDL3 {
                 game_options.window_height,
             )
             .position_centered()
+            .resizable()
             .build()
             .expect("failed to build window");
 
