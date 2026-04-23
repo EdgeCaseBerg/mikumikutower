@@ -107,9 +107,10 @@ impl Scene for LevelScene {
         let Some(ref mut renderer) = game_context.renderer else {
             return;
         };
+        let (screen_width, screen_height) = game_context.screen_size;
 
         let layout = GridLayout {
-            area: Rect::new(0, 0, 1280, 720),
+            area: Rect::new(0, 0, screen_width as isize, screen_height as isize),
             rows: 18,
             columns: 32,
             cell_gap: 0,

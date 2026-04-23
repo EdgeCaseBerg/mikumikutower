@@ -80,6 +80,7 @@ pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
     let backend = init_backend(&game_options);
     let mut event_loop = backend.create_event_loop(&game_options);
     let mut game_context = crate::game::GameContext::default();
+    game_context.screen_size = (game_options.window_width, game_options.window_height);
     let renderer = event_loop.new_renderer(game_options);
     game_context.renderer = Some(renderer);
     game.scene = Some(Box::new(TestScene::default()));
