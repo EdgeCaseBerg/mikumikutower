@@ -144,5 +144,15 @@ impl Scene for LevelScene {
                 destination: cell,
             });
         }
+
+        // for testing we'll just use the leak
+        if let Some((r, c, cell)) = layout.cell_for_mouse(game_context.mouse_context.position) {
+            let src = sprite_info_leek().get_rect();
+            renderer.send_command(RenderCommand::DrawRect {
+                texture_id: TEXTURE_ID_LEEKSHEET,
+                source: src,
+                destination: cell,
+            });
+        }
     }
 }

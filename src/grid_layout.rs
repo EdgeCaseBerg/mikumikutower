@@ -31,6 +31,25 @@ impl GridLayout {
         (self.area.x + self.cell_gap, self.area.y + self.cell_gap)
     }
 
+    pub fn cell_for_mouse(
+        &self,
+        mouse_position: Option<(f32, f32)>,
+    ) -> Option<(usize, usize, Rect)> {
+        if mouse_position.is_none() {
+            return None;
+        }
+
+        let (x, y) = mouse_position.unwrap();
+
+        let (dx, dy) = self.cell_size();
+        let x_idx = x.floor() as isize / dx;
+        let x_idx = x_idx as usize;
+        let y_idx = y.floor() as isize / dy;
+        let y_idx = y_idx as usize;
+        let rect = self.cell_rect(y_idx, x_idx);
+        Some((y_idx, x_idx, rect))
+    }
+
     pub fn cell_rect(&self, r: usize, c: usize) -> Rect {
         let cell = self.cell_size();
 
