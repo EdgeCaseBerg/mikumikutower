@@ -164,16 +164,18 @@ impl BackendEventLoop for EventLoopSDL3 {
                         yrel,
                         ..
                     } => {
-                        game_context.mouse_context.update(mousestate.left(), mousestate.right(), Some((x, y)));
+                        game_context.mouse_context.update(
+                            mousestate.left(),
+                            mousestate.right(),
+                            Some((x, y)),
+                        );
                     }
-                    Event::Window { win_event, .. } => {
-                        match win_event {
-                            WindowEvent::Resized(w, h) => {
-                                game_context.screen_size = (w as u32, h as u32);
-                            }
-                            _ => {}
+                    Event::Window { win_event, .. } => match win_event {
+                        WindowEvent::Resized(w, h) => {
+                            game_context.screen_size = (w as u32, h as u32);
                         }
-                    }
+                        _ => {}
+                    },
                     _ => {}
                 }
             }

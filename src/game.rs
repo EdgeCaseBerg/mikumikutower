@@ -36,7 +36,7 @@ impl Default for MouseContext {
 }
 
 impl MouseContext {
-    pub fn update(&mut self, left: bool, right: bool, position: Option<(f32, f32)>)  {
+    pub fn update(&mut self, left: bool, right: bool, position: Option<(f32, f32)>) {
         self.left_clicked = left;
         self.right_clicked = right;
         self.position = position;
