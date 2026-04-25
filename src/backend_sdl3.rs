@@ -123,6 +123,9 @@ impl Backend for BackendSDL3 {
         let mut textures = SDL3Textures::from(canvas.texture_creator());
         textures.init(game_options);
 
+        // If we end up having some custom form of cursor for each scene then we can do this
+        // self.sdl.mouse().show_cursor(false);
+
         let e = EventLoopSDL3 {
             event_pump,
             context: Rc::new(RefCell::new(SDL3Context {
