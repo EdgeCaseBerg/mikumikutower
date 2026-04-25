@@ -2,8 +2,8 @@ use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{
-    TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, sprite_info_grass, sprite_info_leek, sprite_info_miku,
-    sprite_info_road,
+    TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, sprite_info_grass, sprite_info_highlight,
+    sprite_info_leek, sprite_info_miku, sprite_info_road,
 };
 use crate::game::GameContext;
 use crate::grid_layout::GridLayout;
@@ -76,6 +76,7 @@ pub struct LevelScene {
     towers: Vec<Tower>,
     grass: SpriteInfo,
     road: SpriteInfo,
+    highlight: SpriteInfo,
 }
 
 // TODO: both base and rect right now are x,y in world coordinates w,h in screen. we should fix that up.
@@ -87,6 +88,7 @@ impl Default for LevelScene {
             towers: initial_towers,
             grass: sprite_info_grass(),
             road: sprite_info_road(),
+            highlight: sprite_info_highlight(),
         }
     }
 }
@@ -98,6 +100,7 @@ impl Scene for LevelScene {
         self.grass.advance(ticks);
         self.road.advance(ticks);
         self.base.sprite_info.advance(ticks);
+        self.highlight.advance(ticks);
         for mut tower in &mut self.towers {
             tower.sprite_info.advance(ticks);
         }
@@ -147,7 +150,7 @@ impl Scene for LevelScene {
 
         // for testing we'll just use the leak
         if let Some((r, c, cell)) = layout.cell_for_mouse(game_context.mouse_context.position) {
-            let src = sprite_info_leek().get_rect();
+            let src = self.highlight.get_rect();
             renderer.send_command(RenderCommand::DrawRect {
                 texture_id: TEXTURE_ID_LEEKSHEET,
                 source: src,
