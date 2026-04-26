@@ -68,3 +68,42 @@ pub const fn sprite_info_highlight() -> SpriteInfo {
         delta: 0,
     }
 }
+
+pub const fn sprite_info_miku_tower() -> SpriteInfo {
+    SpriteInfo {
+        start_x: 32 * 7,
+        start_y: 0,
+        width: 32,
+        height: 32,
+        frames: 2,
+        current_frame: 0,
+        framerate_per_second: 8,
+        delta: 0,
+    }
+}
+
+pub const fn sprite_info_rin_tower() -> SpriteInfo {
+    SpriteInfo {
+        start_x: 32 * 9,
+        start_y: 0,
+        width: 32,
+        height: 32,
+        frames: 2,
+        current_frame: 0,
+        framerate_per_second: 4,
+        delta: 0,
+    }
+}
+
+pub const fn sprite_info_luka_tower() -> SpriteInfo {
+    SpriteInfo {
+        start_x: 32 * 11,
+        start_y: 0,
+        width: 32,
+        height: 32,
+        frames: 2,
+        current_frame: 0,
+        framerate_per_second: 16,
+        delta: 0,
+    }
+}
