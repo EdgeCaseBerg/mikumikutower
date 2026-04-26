@@ -3,7 +3,8 @@ use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{
     TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, sprite_info_grass, sprite_info_highlight,
-    sprite_info_leek, sprite_info_miku, sprite_info_road,
+    sprite_info_leek, sprite_info_luka_tower, sprite_info_miku, sprite_info_miku_tower,
+    sprite_info_rin_tower, sprite_info_road,
 };
 use crate::game::GameContext;
 use crate::grid_layout::GridLayout;
@@ -69,6 +70,90 @@ impl Tower {
             sprite_info: sprite_info_leek(),
         }
     }
+
+    fn miku(position: Rect) -> Self {
+        let mut base = Self::basic(position);
+        base.sprite_info = sprite_info_miku_tower();
+        base
+    }
+
+    fn rin(position: Rect) -> Self {
+        let mut base = Self::basic(position);
+        base.sprite_info = sprite_info_rin_tower();
+        base
+    }
+
+    fn luka(position: Rect) -> Self {
+        let mut base = Self::basic(position);
+        base.sprite_info = sprite_info_luka_tower();
+        base
+    }
+}
+
+#[derive(Debug, Clone)]
+enum PlayerAction {
+    PlaceTower(Tower),
+    // more later as desired.
+}
+
+pub struct TopBar {
+    miku_tower: Tower, // average useful tower
+    rin_tower: Tower,  // speedy but less damage
+    luka_tower: Tower, // slow but strong
+    current_action: Option<PlayerAction>,
+}
+
+impl Default for TopBar {
+    fn default() -> TopBar {
+        TopBar {
+            miku_tower: Tower::miku(Rect::new(0, 0, 32, 32)),
+            rin_tower: Tower::rin(Rect::new(1, 0, 32, 32)),
+            luka_tower: Tower::luka(Rect::new(2, 0, 32, 32)),
+            current_action: None,
+        }
+    }
+}
+
+impl TopBar {
+    fn update(&mut self, ticks: u32, game_context: &mut GameContext, layout: &GridLayout) {
+        let Some((r, c, rect)) = layout.cell_for_mouse(game_context.mouse_context.position) else {
+            return;
+        };
+
+        for tower in vec![
+            &mut self.miku_tower,
+            &mut self.rin_tower,
+            &mut self.luka_tower,
+        ] {
+            let tower_cell = layout.cell_rect(tower.position.y as usize, tower.position.x as usize);
+            if tower_cell.contains(rect.x + 1, rect.y + 1) {
+                tower.sprite_info.advance(ticks);
+                if game_context.mouse_context.left_clicked && self.current_action.is_none() {
+                    self.current_action = Some(PlayerAction::PlaceTower(tower.clone()));
+                }
+            }
+        }
+
+        if game_context.mouse_context.right_clicked {
+            self.current_action = None;
+        }
+    }
+
+    fn draw(&mut self, game_context: &mut GameContext, layout: &GridLayout) {
+        let Some(ref mut renderer) = game_context.renderer else {
+            return;
+        };
+
+        for tower in vec![&self.miku_tower, &self.rin_tower, &self.luka_tower] {
+            let cell = layout.cell_rect(tower.position.y as usize, tower.position.x as usize);
+            let src = tower.sprite_info.get_rect();
+            renderer.send_command(RenderCommand::DrawRect {
+                texture_id: TEXTURE_ID_LEEKSHEET,
+                source: src,
+                destination: cell,
+            });
+        }
+    }
 }
 
 pub struct LevelScene {
@@ -77,6 +162,7 @@ pub struct LevelScene {
     grass: SpriteInfo,
     road: SpriteInfo,
     highlight: SpriteInfo,
+    top_bar: TopBar,
 }
 
 // TODO: both base and rect right now are x,y in world coordinates w,h in screen. we should fix that up.
@@ -89,6 +175,7 @@ impl Default for LevelScene {
             grass: sprite_info_grass(),
             road: sprite_info_road(),
             highlight: sprite_info_highlight(),
+            top_bar: TopBar::default(),
         }
     }
 }
@@ -97,6 +184,14 @@ impl Scene for LevelScene {
     fn init(&mut self, game_context: &mut GameContext) {}
 
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
+        let (screen_width, screen_height) = game_context.screen_size;
+        let layout = GridLayout {
+            area: Rect::new(0, 0, screen_width as isize, screen_height as isize),
+            rows: 18,
+            columns: 32,
+            cell_gap: 0,
+        };
+
         self.grass.advance(ticks);
         self.road.advance(ticks);
         self.base.sprite_info.advance(ticks);
@@ -104,6 +199,7 @@ impl Scene for LevelScene {
         for mut tower in &mut self.towers {
             tower.sprite_info.advance(ticks);
         }
+        self.top_bar.update(ticks, game_context, &layout);
     }
 
     fn draw(&mut self, game_context: &mut GameContext) {
@@ -148,8 +244,16 @@ impl Scene for LevelScene {
             });
         }
 
-        // for testing we'll just use the leak
         if let Some((r, c, cell)) = layout.cell_for_mouse(game_context.mouse_context.position) {
+            if let Some(PlayerAction::PlaceTower(tower_to_place)) = &self.top_bar.current_action {
+                let src = tower_to_place.sprite_info.get_rect();
+                renderer.send_command(RenderCommand::DrawRect {
+                    texture_id: TEXTURE_ID_LEEKSHEET,
+                    source: src,
+                    destination: cell,
+                });
+            }
+
             let src = self.highlight.get_rect();
             renderer.send_command(RenderCommand::DrawRect {
                 texture_id: TEXTURE_ID_LEEKSHEET,
@@ -157,5 +261,6 @@ impl Scene for LevelScene {
                 destination: cell,
             });
         }
+        self.top_bar.draw(game_context, &layout);
     }
 }
