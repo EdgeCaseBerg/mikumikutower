@@ -130,6 +130,7 @@ impl TopBar {
                 tower.sprite_info.advance(ticks);
                 if game_context.mouse_context.left_clicked && self.current_action.is_none() {
                     self.current_action = Some(PlayerAction::PlaceTower(tower.clone()));
+                    game_context.mouse_context.left_clicked = false;
                 }
             }
         }
