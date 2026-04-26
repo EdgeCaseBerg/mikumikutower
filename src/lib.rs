@@ -74,6 +74,12 @@ impl<T: PartialOrd + Copy + Add<Output = T> + Sub<Output = T>> Rect<T> {
             height,
         }
     }
+
+    pub fn contains(&self, x2: T, y2: T) -> bool {
+        let in_x = self.x < x2 && x2 < self.x + self.width;
+        let in_y = self.y < y2 && y2 < self.y + self.height;
+        in_x && in_y
+    }
 }
 
 pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
