@@ -18,6 +18,7 @@ use sdl3::event::{Event, WindowEvent};
 use sdl3::filesystem::get_current_directory;
 use sdl3::image::LoadTexture;
 use sdl3::keyboard::Keycode;
+use sdl3::mouse::MouseButton;
 use sdl3::render::Texture;
 use sdl3::render::TextureCreator;
 use sdl3::render::WindowCanvas;
@@ -170,6 +171,15 @@ impl BackendEventLoop for EventLoopSDL3 {
                         game_context.mouse_context.update(
                             mousestate.left(),
                             mousestate.right(),
+                            Some((x, y)),
+                        );
+                    }
+                    Event::MouseButtonDown {
+                        mouse_btn, x, y, ..
+                    } => {
+                        game_context.mouse_context.update(
+                            mouse_btn == MouseButton::Left,
+                            mouse_btn == MouseButton::Right,
                             Some((x, y)),
                         );
                     }
