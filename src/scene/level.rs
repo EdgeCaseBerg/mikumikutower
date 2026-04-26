@@ -252,6 +252,17 @@ impl Scene for LevelScene {
                     source: src,
                     destination: cell,
                 });
+
+                // TODO: and we have the money for it...
+                if game_context.mouse_context.left_clicked {
+                    let action = self.top_bar.current_action.take();
+                    let Some(PlayerAction::PlaceTower(mut tower)) = action else {
+                        unreachable!();
+                    };
+                    tower.position.x = c as isize;
+                    tower.position.y = r as isize;
+                    self.towers.push(tower);
+                }
             }
 
             let src = self.highlight.get_rect();
