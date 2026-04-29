@@ -135,15 +135,29 @@ impl TopBar {
             let tower_cell = layout.cell_rect(tower.position.y as usize, tower.position.x as usize);
             if tower_cell.contains(rect.x + 1, rect.y + 1) {
                 tower.sprite_info.advance(ticks);
-                if game_context.mouse_context.left_clicked && self.current_action.is_none() {
+                if game_context.mouse_context.left_clicked
+                    && self.current_action.is_none()
+                    && self.money >= tower.cost
+                {
                     self.current_action = Some(PlayerAction::PlaceTower(tower.clone()));
-                    game_context.mouse_context.left_clicked = false;
+                    game_context.mouse_context.consume_left_click();
+                    // annoyingly, we cant call self.buy_tower without the borrow checker bitching.
+                    // because it can't understand that only the money field will be mutated within that call.
+                    self.money = self.money.saturating_sub(tower.cost);
+                    eprintln!("Buy tower {}", self.money);
                 }
             }
         }
 
         if game_context.mouse_context.right_clicked {
-            self.current_action = None;
+            match &self.current_action {
+                Some(PlayerAction::PlaceTower(tower)) => {
+                    self.money = self.money.saturating_add(tower.cost);
+                    game_context.mouse_context.consume_right_click();
+                    self.current_action = None;
+                }
+                _ => {}
+            }
         }
     }
 
@@ -161,6 +175,20 @@ impl TopBar {
                 destination: cell,
             });
         }
+    }
+
+    fn buy_tower(&mut self, tower: &Tower) {
+        if tower.cost > self.money {
+            eprintln!("Dont Buy tower {}", self.money);
+            return;
+        }
+        self.money = self.money.saturating_sub(tower.cost);
+        eprintln!("Buy tower {}", self.money);
+    }
+
+    fn refund_tower(&mut self, tower: &Tower) {
+        self.money = self.money.saturating_add(tower.cost);
+        eprintln!("Refund tower {}", self.money);
     }
 }
 
@@ -208,6 +236,29 @@ impl Scene for LevelScene {
             tower.sprite_info.advance(ticks);
         }
         self.top_bar.update(ticks, game_context, &layout);
+
+        if let Some((r, c, cell)) = layout.cell_for_mouse(game_context.mouse_context.position) {
+            if let Some(PlayerAction::PlaceTower(tower_to_place)) = &self.top_bar.current_action {
+                if game_context.mouse_context.left_clicked {
+                    let action = self.top_bar.current_action.take();
+                    let Some(PlayerAction::PlaceTower(mut tower)) = action else {
+                        unreachable!();
+                    };
+                    tower.position.x = c as isize;
+                    tower.position.y = r as isize;
+                    self.towers.push(tower);
+                }
+
+                // as long as we call top_bar_update above first then we dont need to do this
+                // if game_context.mouse_context.right_clicked {
+                //     let action = self.top_bar.current_action.take();
+                //     let Some(PlayerAction::PlaceTower(mut tower)) = action else {
+                //         unreachable!();
+                //     };
+                //     self.top_bar.refund_tower(&tower)
+                // }
+            }
+        }
     }
 
     fn draw(&mut self, game_context: &mut GameContext) {
@@ -260,17 +311,6 @@ impl Scene for LevelScene {
                     source: src,
                     destination: cell,
                 });
-
-                // TODO: and we have the money for it...
-                if game_context.mouse_context.left_clicked {
-                    let action = self.top_bar.current_action.take();
-                    let Some(PlayerAction::PlaceTower(mut tower)) = action else {
-                        unreachable!();
-                    };
-                    tower.position.x = c as isize;
-                    tower.position.y = r as isize;
-                    self.towers.push(tower);
-                }
             }
 
             let src = self.highlight.get_rect();
