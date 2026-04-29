@@ -59,6 +59,7 @@ struct Tower {
     range: u16, // 65535 should be enough
     // Add types later or some such thing.
     sprite_info: SpriteInfo, // a leek sprite for now
+    cost: u32,
 }
 
 impl Tower {
@@ -68,24 +69,28 @@ impl Tower {
             state: TowerState::Ready,
             range: 5, // TODO: revisit once we decide how big our gameboard is
             sprite_info: sprite_info_leek(),
+            cost: 10,
         }
     }
 
     fn miku(position: Rect) -> Self {
         let mut base = Self::basic(position);
         base.sprite_info = sprite_info_miku_tower();
+        base.cost = 20;
         base
     }
 
     fn rin(position: Rect) -> Self {
         let mut base = Self::basic(position);
         base.sprite_info = sprite_info_rin_tower();
+        base.cost = 15;
         base
     }
 
     fn luka(position: Rect) -> Self {
         let mut base = Self::basic(position);
         base.sprite_info = sprite_info_luka_tower();
+        base.cost = 30;
         base
     }
 }
@@ -101,6 +106,7 @@ pub struct TopBar {
     rin_tower: Tower,  // speedy but less damage
     luka_tower: Tower, // slow but strong
     current_action: Option<PlayerAction>,
+    money: u32,
 }
 
 impl Default for TopBar {
@@ -110,6 +116,7 @@ impl Default for TopBar {
             rin_tower: Tower::rin(Rect::new(1, 0, 32, 32)),
             luka_tower: Tower::luka(Rect::new(2, 0, 32, 32)),
             current_action: None,
+            money: 50, // TODO: figure out a good starting point for this
         }
     }
 }
