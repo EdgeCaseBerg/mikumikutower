@@ -41,6 +41,14 @@ impl MouseContext {
         self.right_clicked = right;
         self.position = position;
     }
+
+    pub fn consume_left_click(&mut self) {
+        self.left_clicked = false;
+    }
+
+    pub fn consume_right_click(&mut self) {
+        self.right_clicked = false;
+    }
 }
 
 pub struct GameContext {
