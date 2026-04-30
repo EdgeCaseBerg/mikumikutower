@@ -99,7 +99,7 @@ impl Tower {
         let mut base = Self::basic(position);
         base.sprite_info = sprite_info_luka_tower();
         base.cost = 30;
-        base.damage = 10;
+        base.damage = 15;
         base.cooldown = 60;
         base
     }
