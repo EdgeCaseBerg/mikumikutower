@@ -73,7 +73,7 @@ impl Tower {
             sprite_info: sprite_info_leek(),
             cost: 10,
             damage: 1,
-            cooldown: 3,
+            cooldown: 30,
         }
     }
 
@@ -82,7 +82,7 @@ impl Tower {
         base.sprite_info = sprite_info_miku_tower();
         base.cost = 20;
         base.damage = 5;
-        base.cooldown = 3;
+        base.cooldown = 30;
         base
     }
 
@@ -91,7 +91,7 @@ impl Tower {
         base.sprite_info = sprite_info_rin_tower();
         base.cost = 15;
         base.damage = 3;
-        base.cooldown = 2;
+        base.cooldown = 15;
         base
     }
 
@@ -100,7 +100,7 @@ impl Tower {
         base.sprite_info = sprite_info_luka_tower();
         base.cost = 30;
         base.damage = 10;
-        base.cooldown = 5;
+        base.cooldown = 60;
         base
     }
 }
