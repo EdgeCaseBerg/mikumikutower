@@ -13,7 +13,7 @@ use crate::renderer::RenderCommand;
 #[derive(Debug, Clone)]
 enum TowerState {
     Ready,
-    Cooldown { wait_for: u8, ticks_waited: u8 },
+    Cooldown { wait_for: u32, ticks_waited: u32 },
 }
 
 #[derive(Debug, Clone)]
@@ -65,6 +65,25 @@ struct Tower {
 }
 
 impl Tower {
+    fn update(&mut self, ticks: u32) {
+        match self.state {
+            TowerState::Ready => {
+                // todo: if we had a target to fire at then we'd fire and transition
+                // into the cooldown state
+            },
+            TowerState::Cooldown { wait_for, ticks_waited } => {
+                let ticks_waited = ticks_waited.saturating_add(ticks);
+                if ticks_waited >= wait_for {
+                    self.state = TowerState::Ready;
+                } else {
+                    self.state = TowerState::Cooldown {
+                        wait_for, ticks_waited
+                    };
+                }
+            }
+        }
+    }
+
     fn basic(position: Rect) -> Self {
         Self {
             position,
