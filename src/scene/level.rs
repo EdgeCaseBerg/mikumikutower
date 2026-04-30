@@ -216,6 +216,47 @@ impl Default for LevelScene {
     }
 }
 
+impl LevelScene {
+    fn check_action(&mut self, layout: &GridLayout, game_context: &mut GameContext) {
+        let Some(PlayerAction::PlaceTower(tower_to_place)) = &self.top_bar.current_action else {
+            return;
+        };
+
+        let Some((r, c, cell)) = layout.cell_for_mouse(game_context.mouse_context.position) else {
+            return;
+        };
+
+        let legal_placement = {
+            let not_in_menu = r > 0;
+            let not_on_other_tower = !self
+                .towers
+                .iter()
+                .any(|t| t.position.x == c as isize && t.position.y == r as isize);
+            not_in_menu && not_on_other_tower
+        };
+        if game_context.mouse_context.left_clicked && legal_placement {
+            let action = self.top_bar.current_action.take();
+            let Some(PlayerAction::PlaceTower(mut tower)) = action else {
+                unreachable!();
+            };
+            tower.position.x = c as isize;
+            tower.position.y = r as isize;
+            self.towers.push(tower);
+            game_context.mouse_context.consume_left_click();
+        }
+
+        // calling top_bar update should mean we dont need to do this. but doesnt hurt to be sure.
+        if game_context.mouse_context.right_clicked {
+            let action = self.top_bar.current_action.take();
+            let Some(PlayerAction::PlaceTower(mut tower)) = action else {
+                unreachable!();
+            };
+            self.top_bar.refund_tower(&tower);
+            game_context.mouse_context.consume_right_click();
+        }
+    }
+}
+
 impl Scene for LevelScene {
     fn init(&mut self, game_context: &mut GameContext) {}
 
@@ -236,29 +277,7 @@ impl Scene for LevelScene {
             tower.sprite_info.advance(ticks);
         }
         self.top_bar.update(ticks, game_context, &layout);
-
-        if let Some((r, c, cell)) = layout.cell_for_mouse(game_context.mouse_context.position) {
-            if let Some(PlayerAction::PlaceTower(tower_to_place)) = &self.top_bar.current_action {
-                if game_context.mouse_context.left_clicked {
-                    let action = self.top_bar.current_action.take();
-                    let Some(PlayerAction::PlaceTower(mut tower)) = action else {
-                        unreachable!();
-                    };
-                    tower.position.x = c as isize;
-                    tower.position.y = r as isize;
-                    self.towers.push(tower);
-                }
-
-                // as long as we call top_bar_update above first then we dont need to do this
-                // if game_context.mouse_context.right_clicked {
-                //     let action = self.top_bar.current_action.take();
-                //     let Some(PlayerAction::PlaceTower(mut tower)) = action else {
-                //         unreachable!();
-                //     };
-                //     self.top_bar.refund_tower(&tower)
-                // }
-            }
-        }
+        self.check_action(&layout, game_context);
     }
 
     fn draw(&mut self, game_context: &mut GameContext) {
