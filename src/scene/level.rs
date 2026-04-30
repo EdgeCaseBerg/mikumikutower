@@ -60,6 +60,8 @@ struct Tower {
     // Add types later or some such thing.
     sprite_info: SpriteInfo, // a leek sprite for now
     cost: u32,
+    damage: u32,
+    cooldown: u32,
 }
 
 impl Tower {
@@ -70,6 +72,8 @@ impl Tower {
             range: 5, // TODO: revisit once we decide how big our gameboard is
             sprite_info: sprite_info_leek(),
             cost: 10,
+            damage: 1,
+            cooldown: 3,
         }
     }
 
@@ -77,6 +81,8 @@ impl Tower {
         let mut base = Self::basic(position);
         base.sprite_info = sprite_info_miku_tower();
         base.cost = 20;
+        base.damage = 5;
+        base.cooldown = 3;
         base
     }
 
@@ -84,6 +90,8 @@ impl Tower {
         let mut base = Self::basic(position);
         base.sprite_info = sprite_info_rin_tower();
         base.cost = 15;
+        base.damage = 3;
+        base.cooldown = 2;
         base
     }
 
@@ -91,6 +99,8 @@ impl Tower {
         let mut base = Self::basic(position);
         base.sprite_info = sprite_info_luka_tower();
         base.cost = 30;
+        base.damage = 10;
+        base.cooldown = 5;
         base
     }
 }
