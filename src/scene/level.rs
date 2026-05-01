@@ -11,6 +11,14 @@ use crate::grid_layout::GridLayout;
 use crate::renderer::RenderCommand;
 
 #[derive(Debug, Clone)]
+struct Enemy {
+    position: Rect,
+    health: Health,
+    sprite_info: SpriteInfo,
+    ready_state: TowerState // TODO rename struct
+}
+
+#[derive(Debug, Clone)]
 enum TowerState {
     Ready,
     Cooldown { wait_for: u32, ticks_waited: u32 },
