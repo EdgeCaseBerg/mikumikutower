@@ -107,3 +107,28 @@ pub const fn sprite_info_luka_tower() -> SpriteInfo {
         delta: 0,
     }
 }
+
+pub const fn sprite_info_teto() -> SpriteInfo {
+    SpriteInfo {
+        start_x: 32 * 13,
+        start_y: 0,
+        width: 32,
+        height: 32,
+        frames: 1,
+        current_frame: 0,
+        framerate_per_second: 16,
+        delta: 0,
+    }
+}
+pub const fn sprite_info_teto_walking() -> SpriteInfo {
+    SpriteInfo {
+        start_x: 32 * 14,
+        start_y: 0,
+        width: 32,
+        height: 32,
+        frames: 2,
+        current_frame: 0,
+        framerate_per_second: 16,
+        delta: 0,
+    }
+}
