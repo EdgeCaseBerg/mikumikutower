@@ -165,7 +165,8 @@ impl Default for TopBar {
 
 impl TopBar {
     fn update(&mut self, ticks: u32, game_context: &mut GameContext, layout: &GridLayout) {
-        let Some((r, c, rect)) = layout.cell_for_mouse(game_context.mouse_context.position) else {
+        let Some((_r, _c, rect)) = layout.cell_for_mouse(game_context.mouse_context.position)
+        else {
             return;
         };
 
@@ -254,17 +255,18 @@ impl Default for LevelScene {
             road: sprite_info_road(),
             highlight: sprite_info_highlight(),
             top_bar: TopBar::default(),
+            enemies: initial_enemies,
         }
     }
 }
 
 impl LevelScene {
     fn check_action(&mut self, layout: &GridLayout, game_context: &mut GameContext) {
-        let Some(PlayerAction::PlaceTower(tower_to_place)) = &self.top_bar.current_action else {
+        let Some(PlayerAction::PlaceTower(_)) = &self.top_bar.current_action else {
             return;
         };
 
-        let Some((r, c, cell)) = layout.cell_for_mouse(game_context.mouse_context.position) else {
+        let Some((r, c, _cell)) = layout.cell_for_mouse(game_context.mouse_context.position) else {
             return;
         };
 
@@ -290,7 +292,7 @@ impl LevelScene {
         // calling top_bar update should mean we dont need to do this. but doesnt hurt to be sure.
         if game_context.mouse_context.right_clicked {
             let action = self.top_bar.current_action.take();
-            let Some(PlayerAction::PlaceTower(mut tower)) = action else {
+            let Some(PlayerAction::PlaceTower(tower)) = action else {
                 unreachable!();
             };
             self.top_bar.refund_tower(&tower);
@@ -300,7 +302,7 @@ impl LevelScene {
 }
 
 impl Scene for LevelScene {
-    fn init(&mut self, game_context: &mut GameContext) {}
+    fn init(&mut self, _game_context: &mut GameContext) {}
 
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
         let (screen_width, screen_height) = game_context.screen_size;
@@ -315,7 +317,7 @@ impl Scene for LevelScene {
         self.road.advance(ticks);
         self.base.sprite_info.advance(ticks);
         self.highlight.advance(ticks);
-        for mut tower in &mut self.towers {
+        for tower in &mut self.towers {
             tower.sprite_info.advance(ticks);
         }
         self.top_bar.update(ticks, game_context, &layout);
@@ -364,7 +366,7 @@ impl Scene for LevelScene {
             });
         }
 
-        if let Some((r, c, cell)) = layout.cell_for_mouse(game_context.mouse_context.position) {
+        if let Some((_r, _c, cell)) = layout.cell_for_mouse(game_context.mouse_context.position) {
             if let Some(PlayerAction::PlaceTower(tower_to_place)) = &self.top_bar.current_action {
                 let src = tower_to_place.sprite_info.get_rect();
                 renderer.send_command(RenderCommand::DrawRect {
