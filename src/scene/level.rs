@@ -15,11 +15,11 @@ struct Enemy {
     position: Rect,
     health: Health,
     sprite_info: SpriteInfo,
-    ready_state: TowerState // TODO rename struct
+    ready_state: ReadyState
 }
 
 #[derive(Debug, Clone)]
-enum TowerState {
+enum ReadyState {
     Ready,
     Cooldown { wait_for: u32, ticks_waited: u32 },
 }
@@ -63,7 +63,7 @@ impl Default for Base {
 #[derive(Debug, Clone)]
 struct Tower {
     position: Rect,
-    state: TowerState,
+    state: ReadyState,
     range: u16, // 65535 should be enough
     // Add types later or some such thing.
     sprite_info: SpriteInfo, // a leek sprite for now
@@ -75,16 +75,16 @@ struct Tower {
 impl Tower {
     fn update(&mut self, ticks: u32) {
         match self.state {
-            TowerState::Ready => {
+            ReadyState::Ready => {
                 // todo: if we had a target to fire at then we'd fire and transition
                 // into the cooldown state
             },
-            TowerState::Cooldown { wait_for, ticks_waited } => {
+            ReadyState::Cooldown { wait_for, ticks_waited } => {
                 let ticks_waited = ticks_waited.saturating_add(ticks);
                 if ticks_waited >= wait_for {
-                    self.state = TowerState::Ready;
+                    self.state = ReadyState::Ready;
                 } else {
-                    self.state = TowerState::Cooldown {
+                    self.state = ReadyState::Cooldown {
                         wait_for, ticks_waited
                     };
                 }
@@ -95,7 +95,7 @@ impl Tower {
     fn basic(position: Rect) -> Self {
         Self {
             position,
-            state: TowerState::Ready,
+            state: ReadyState::Ready,
             range: 5, // TODO: revisit once we decide how big our gameboard is
             sprite_info: sprite_info_leek(),
             cost: 10,
