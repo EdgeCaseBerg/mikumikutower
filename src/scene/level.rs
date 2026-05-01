@@ -94,22 +94,7 @@ struct Tower {
 
 impl Tower {
     fn update(&mut self, ticks: u32) {
-        match self.state {
-            ReadyState::Ready => {
-                // todo: if we had a target to fire at then we'd fire and transition
-                // into the cooldown state
-            },
-            ReadyState::Cooldown { wait_for, ticks_waited } => {
-                let ticks_waited = ticks_waited.saturating_add(ticks);
-                if ticks_waited >= wait_for {
-                    self.state = ReadyState::Ready;
-                } else {
-                    self.state = ReadyState::Cooldown {
-                        wait_for, ticks_waited
-                    };
-                }
-            }
-        }
+        self.state = advance_ready_state(self.state, ticks);
     }
 
     fn basic(position: Rect) -> Self {
