@@ -18,7 +18,7 @@ struct Enemy {
     ready_state: ReadyState
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 enum ReadyState {
     Ready,
     Cooldown { wait_for: u32, ticks_waited: u32 },
