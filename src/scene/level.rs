@@ -24,6 +24,26 @@ enum ReadyState {
     Cooldown { wait_for: u32, ticks_waited: u32 },
 }
 
+fn advance_ready_state(ready_state: ReadyState, ticks: u32) -> ReadyState {
+    match ready_state {
+        ReadyState::Ready => ready_state,
+        ReadyState::Cooldown {
+            wait_for,
+            ticks_waited,
+        } => {
+            let ticks_waited = ticks_waited.saturating_add(ticks);
+            if ticks_waited >= wait_for {
+                ReadyState::Ready
+            } else {
+                ReadyState::Cooldown {
+                    wait_for,
+                    ticks_waited,
+                }
+            }
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 struct Health {
     current: u8,
