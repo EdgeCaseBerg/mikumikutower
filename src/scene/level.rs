@@ -4,7 +4,7 @@ use crate::SpriteInfo;
 use crate::constants::{
     TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, sprite_info_grass, sprite_info_highlight,
     sprite_info_leek, sprite_info_luka_tower, sprite_info_miku, sprite_info_miku_tower,
-    sprite_info_rin_tower, sprite_info_road,
+    sprite_info_rin_tower, sprite_info_road, sprite_info_teto_walking,
 };
 use crate::game::GameContext;
 use crate::grid_layout::GridLayout;
@@ -15,7 +15,30 @@ struct Enemy {
     position: Rect,
     health: Health,
     sprite_info: SpriteInfo,
-    ready_state: ReadyState
+    ready_state: ReadyState,
+}
+
+impl Enemy {
+    fn teto(position: Rect) -> Self {
+        Self {
+            position,
+            health: Health::default(), // tweak later.
+            sprite_info: sprite_info_teto_walking(),
+            ready_state: ReadyState::Ready,
+        }
+    }
+
+    fn update(&mut self, ticks: u32) {
+        self.ready_state = advance_ready_state(self.ready_state, ticks);
+        self.sprite_info.advance(ticks);
+        // todo: if we had a target to fire at then we'd fire and transition
+        // into the cooldown state if ready.
+    }
+
+    fn get_rect(&self) -> Rect {
+        // TODO: when on cooldown, return sprite_info_teto, when ready return
+        self.sprite_info.get_rect()
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -242,12 +265,14 @@ pub struct LevelScene {
     road: SpriteInfo,
     highlight: SpriteInfo,
     top_bar: TopBar,
+    enemies: Vec<Enemy>,
 }
 
 // TODO: both base and rect right now are x,y in world coordinates w,h in screen. we should fix that up.
 impl Default for LevelScene {
     fn default() -> LevelScene {
         let initial_towers = vec![Tower::basic(Rect::new(26, 15, 32, 32))];
+        let initial_enemies = vec![Enemy::teto(Rect::new(16, 9, 32, 32))];
         LevelScene {
             base: Base::default(),
             towers: initial_towers,
@@ -321,6 +346,9 @@ impl Scene for LevelScene {
             tower.sprite_info.advance(ticks);
         }
         self.top_bar.update(ticks, game_context, &layout);
+        for enemy in &mut self.enemies {
+            enemy.update(ticks);
+        }
         self.check_action(&layout, game_context);
     }
 
@@ -359,6 +387,16 @@ impl Scene for LevelScene {
         for tower in self.towers.iter() {
             let cell = layout.cell_rect(tower.position.y as usize, tower.position.x as usize);
             let src = tower.sprite_info.get_rect();
+            renderer.send_command(RenderCommand::DrawRect {
+                texture_id: TEXTURE_ID_LEEKSHEET,
+                source: src,
+                destination: cell,
+            });
+        }
+
+        for enemy in self.enemies.iter() {
+            let cell = layout.cell_rect(enemy.position.y as usize, enemy.position.x as usize);
+            let src = enemy.get_rect();
             renderer.send_command(RenderCommand::DrawRect {
                 texture_id: TEXTURE_ID_LEEKSHEET,
                 source: src,
