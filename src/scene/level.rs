@@ -2,9 +2,9 @@ use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{
-    TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, sprite_info_grass, sprite_info_highlight,
-    sprite_info_leek, sprite_info_luka_tower, sprite_info_miku, sprite_info_miku_tower,
-    sprite_info_rin_tower, sprite_info_road, sprite_info_teto_walking,
+    TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, sprite_info_energy, sprite_info_grass,
+    sprite_info_highlight, sprite_info_leek, sprite_info_luka_tower, sprite_info_miku,
+    sprite_info_miku_tower, sprite_info_rin_tower, sprite_info_road, sprite_info_teto_walking,
 };
 use crate::game::GameContext;
 use crate::grid_layout::GridLayout;
@@ -106,6 +106,49 @@ impl Default for Base {
 }
 
 #[derive(Debug, Clone)]
+struct Projectile {
+    position: Rect,
+    start: (isize, isize),
+    end: (isize, isize),
+    damage: u32,
+    hit_when_ready: ReadyState,
+    sprite_info: SpriteInfo,
+}
+
+impl Projectile {
+    fn new(start: (isize, isize), end: (isize, isize), damage: u32, ticks_until_hit: u32) -> Self {
+        Projectile {
+            position: Rect::new(start.0 as isize, start.1 as isize, 32, 32),
+            start,
+            end,
+            damage,
+            hit_when_ready: ReadyState::Cooldown {
+                wait_for: ticks_until_hit,
+                ticks_waited: 0,
+            },
+            sprite_info: sprite_info_energy(),
+        }
+    }
+
+    fn update(&mut self, ticks: u32) {
+        self.hit_when_ready = advance_ready_state(self.hit_when_ready, ticks);
+        self.sprite_info.advance(ticks);
+        // TODO: interpolate position for bullet from start to end based on ticks_waited
+        match self.hit_when_ready {
+            ReadyState::Ready => {
+                self.position.x = self.end.0;
+                self.position.y = self.end.1;
+            }
+            _ => {}
+        }
+    }
+
+    fn get_rect(&self) -> Rect {
+        self.sprite_info.get_rect()
+    }
+}
+
+#[derive(Debug, Clone)]
 struct Tower {
     position: Rect,
     state: ReadyState,
@@ -135,6 +178,12 @@ impl Tower {
     fn update(&mut self, ticks: u32) {
         self.state = advance_ready_state(self.state, ticks);
         self.sprite_info.advance(ticks);
+    }
+
+    fn projectile(&self, to: (isize, isize)) -> Projectile {
+        let start = self.position.clone(); // TODO adjust start to be centered
+        let ticks_until_hit = 60 / self.range as u32; // TODO tweak as neede
+        Projectile::new((start.x, start.y), to, self.damage, ticks_until_hit)
     }
 
     fn basic(position: Rect) -> Self {
@@ -286,6 +335,7 @@ pub struct LevelScene {
     top_bar: TopBar,
     enemies: Vec<Enemy>,
     cell_to_turrets: HashMap<(usize, usize), Vec<usize>>,
+    projectiles: Vec<Projectile>,
 }
 
 // TODO: both base and rect right now are x,y in world coordinates w,h in screen. we should fix that up.
@@ -303,6 +353,7 @@ impl Default for LevelScene {
             top_bar: TopBar::default(),
             enemies: initial_enemies,
             cell_to_turrets,
+            projectiles: Vec::new(),
         };
         level_scene.add_tower(Tower::basic(Rect::new(26, 15, 32, 32)));
         level_scene
@@ -418,10 +469,17 @@ impl Scene for LevelScene {
                     let tower = &mut self.towers[*tidx];
                     if tower.can_shoot() {
                         eprintln!("Pew pew!");
+                        // TODO: center the target
+                        self.projectiles
+                            .push(tower.projectile((enemy.position.x, enemy.position.y)));
                         tower.cooldown();
                     }
                 }
             }
+        }
+        for projectile in &mut self.projectiles {
+            projectile.update(ticks);
+            // TODO: figure out collision and damage application
         }
         self.check_action(&layout, game_context);
     }
@@ -478,6 +536,18 @@ impl Scene for LevelScene {
             });
         }
 
+        for projectile in self.projectiles.iter() {
+            let cell = layout.cell_rect(
+                projectile.position.y as usize,
+                projectile.position.x as usize,
+            );
+            let src = projectile.get_rect();
+            renderer.send_command(RenderCommand::DrawRect {
+                texture_id: TEXTURE_ID_LEEKSHEET,
+                source: src,
+                destination: cell,
+            });
+        }
         if let Some((r, c, cell)) = layout.cell_for_mouse(game_context.mouse_context.position) {
             if let Some(PlayerAction::PlaceTower(tower_to_place)) = &self.top_bar.current_action {
                 let src = tower_to_place.sprite_info.get_rect();
