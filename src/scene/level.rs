@@ -166,6 +166,7 @@ enum PlayerAction {
     // more later as desired.
 }
 
+#[derive(Debug)]
 pub struct TopBar {
     miku_tower: Tower, // average useful tower
     rin_tower: Tower,  // speedy but less damage
@@ -258,6 +259,7 @@ impl TopBar {
     }
 }
 
+#[derive(Debug)]
 pub struct LevelScene {
     base: Base,
     towers: Vec<Tower>,
