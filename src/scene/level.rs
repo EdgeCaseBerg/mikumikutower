@@ -158,6 +158,13 @@ impl Projectile {
     fn get_rect(&self) -> Rect {
         self.sprite_info.get_rect()
     }
+
+    fn has_arrived(&self) -> bool {
+        match self.hit_when_ready {
+            ReadyState::Ready => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -489,10 +496,12 @@ impl Scene for LevelScene {
                 }
             }
         }
-        for projectile in &mut self.projectiles {
+
+        self.projectiles.retain_mut(|projectile| {
             projectile.update(ticks);
             // TODO: figure out collision and damage application
-        }
+            !projectile.has_arrived()
+        });
         self.check_action(&layout, game_context);
     }
 
