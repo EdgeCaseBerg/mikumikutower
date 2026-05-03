@@ -115,6 +115,11 @@ struct Projectile {
     sprite_info: SpriteInfo,
 }
 
+fn interpolate(z0: isize, z1: isize, alpha: f32) -> isize {
+    let i = z0 as f32 - z0 as f32 * alpha + z1 as f32 * alpha;
+    i as isize
+}
+
 impl Projectile {
     fn new(start: (isize, isize), end: (isize, isize), damage: u32, ticks_until_hit: u32) -> Self {
         Projectile {
