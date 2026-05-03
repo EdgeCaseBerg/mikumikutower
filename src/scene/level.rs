@@ -448,7 +448,7 @@ impl Scene for LevelScene {
             });
         }
 
-        if let Some((_r, _c, cell)) = layout.cell_for_mouse(game_context.mouse_context.position) {
+        if let Some((r, c, cell)) = layout.cell_for_mouse(game_context.mouse_context.position) {
             if let Some(PlayerAction::PlaceTower(tower_to_place)) = &self.top_bar.current_action {
                 let src = tower_to_place.sprite_info.get_rect();
                 renderer.send_command(RenderCommand::DrawRect {
@@ -456,6 +456,22 @@ impl Scene for LevelScene {
                     source: src,
                     destination: cell,
                 });
+
+                let src = self.highlight.get_rect();
+                for key in turret_range_iter(
+                    r as u32,
+                    c as u32,
+                    tower_to_place.range as u32,
+                    layout.rows as u32,
+                    layout.columns as u32,
+                ) {
+                    let cell = layout.cell_rect(key.0, key.1);
+                    renderer.send_command(RenderCommand::DrawRect {
+                        texture_id: TEXTURE_ID_LEEKSHEET,
+                        source: src,
+                        destination: cell,
+                    });
+                }
             }
 
             let src = self.highlight.get_rect();
