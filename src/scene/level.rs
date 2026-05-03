@@ -285,6 +285,25 @@ impl Default for LevelScene {
     }
 }
 
+fn turret_range_iter(
+    center_r: u32,
+    center_c: u32,
+    range: u32,
+    max_rows: u32,
+    max_columns: u32,
+) -> impl Iterator<Item = (usize, usize)> {
+    let cr = center_r;
+    let cc = center_c;
+    (cr.saturating_sub(range)..=(cr + range).min(max_rows)).flat_map(move |r| {
+        (cc.saturating_sub(range)..=(cc + range).min(max_columns)).filter_map(move |c| {
+            let key = (r as usize, c as usize);
+            let x = cc.abs_diff(c);
+            let y = cr.abs_diff(r);
+            if x + y <= range { Some(key) } else { None }
+        })
+    })
+}
+
 impl LevelScene {
     fn check_action(&mut self, layout: &GridLayout, game_context: &mut GameContext) {
         let Some(PlayerAction::PlaceTower(_)) = &self.top_bar.current_action else {
