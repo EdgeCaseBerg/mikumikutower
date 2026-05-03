@@ -280,7 +280,7 @@ impl Default for LevelScene {
         let initial_towers = vec![];
         let initial_enemies = vec![Enemy::teto(Rect::new(27, 9, 32, 32))];
         let cell_to_turrets = HashMap::new();
-        let mut l = LevelScene {
+        let mut level_scene = LevelScene {
             base: Base::default(),
             towers: initial_towers,
             grass: sprite_info_grass(),
@@ -290,8 +290,8 @@ impl Default for LevelScene {
             enemies: initial_enemies,
             cell_to_turrets,
         };
-        l.add_tower(Tower::basic(Rect::new(26, 15, 32, 32)));
-        l
+        level_scene.add_tower(Tower::basic(Rect::new(26, 15, 32, 32)));
+        level_scene
     }
 }
 
