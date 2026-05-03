@@ -7,7 +7,7 @@ pub mod grid_layout;
 pub mod renderer;
 pub mod scene;
 
-use std::ops::{Add, Sub};
+use std::ops::{Add, Div, Shr, Sub};
 
 use crate::backend::init_backend;
 use crate::game::Game;
@@ -55,14 +55,16 @@ impl SpriteInfo {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct Rect<T: PartialOrd + Copy + Add<Output = T> + Sub<Output = T> = isize> {
+pub struct Rect<T: PartialOrd + Copy + Add<Output = T> + Sub<Output = T> + Div<Output=T> = isize> {
     pub x: T,
     pub y: T,
     pub width: T,
     pub height: T,
 }
 
-impl<T: PartialOrd + Copy + Add<Output = T> + Sub<Output = T>> Rect<T> {
+impl<T: PartialOrd + Copy + Add<Output = T> + Sub<Output = T> + Div<Output = T>>
+    Rect<T>
+{
     // (x, y) are the corner from which width and height expand from (x + width = x2, similar for y)
     // so its the bottom left corner in a positive coordinate space and the top left in a quadrant 4 space (like most images)
     #[inline(always)]
@@ -79,6 +81,14 @@ impl<T: PartialOrd + Copy + Add<Output = T> + Sub<Output = T>> Rect<T> {
         let in_x = self.x < x2 && x2 < self.x + self.width;
         let in_y = self.y < y2 && y2 < self.y + self.height;
         in_x && in_y
+    }
+
+    pub fn center(&self) -> (T, T) {
+        let one = (self.x / self.x);
+        let two = one + one;
+        let cx = self.x + self.width / two;
+        let cy = self.y + self.height / two;
+        (cx, cy)
     }
 }
 

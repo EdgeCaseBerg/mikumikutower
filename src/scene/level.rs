@@ -121,9 +121,10 @@ fn interpolate(z0: isize, z1: isize, alpha: f32) -> isize {
 }
 
 impl Projectile {
-    fn new(start: (isize, isize), end: (isize, isize), damage: u32, ticks_until_hit: u32) -> Self {
+    fn new(start: (isize, isize), end: (isize, isize), damage: u32, ticks_until_hit: u32, layout: &GridLayout) -> Self {
+        let cell_size = layout.cell_size();
         Projectile {
-            position: Rect::new(start.0 as isize, start.1 as isize, 32, 32),
+            position: Rect::new(start.0 as isize, start.1 as isize, cell_size.0, cell_size.1),
             start,
             end,
             damage,
@@ -199,10 +200,12 @@ impl Tower {
         self.sprite_info.advance(ticks);
     }
 
-    fn projectile(&self, to: (isize, isize)) -> Projectile {
-        let start = self.position.clone(); // TODO adjust start to be centered
+    fn projectile(&self, layout: &GridLayout, to: (isize, isize)) -> Projectile {
+        let screen_coordinates =
+            layout.cell_rect(self.position.y as usize, self.position.x as usize);
+        let (x, y) = screen_coordinates.center();
         let ticks_until_hit = 60 / self.range as u32; // TODO tweak as neede
-        Projectile::new((start.x, start.y), to, self.damage, ticks_until_hit)
+        Projectile::new((x, y), to, self.damage, ticks_until_hit, layout)
     }
 
     fn basic(position: Rect) -> Self {
@@ -487,9 +490,10 @@ impl Scene for LevelScene {
                 for tidx in tower_indices.iter() {
                     let tower = &mut self.towers[*tidx];
                     if tower.can_shoot() {
-                        // TODO: center the target
+                        let target =
+                            layout.cell_rect(enemy.position.y as usize, enemy.position.x as usize);
                         self.projectiles
-                            .push(tower.projectile((enemy.position.x, enemy.position.y)));
+                            .push(tower.projectile(&layout, target.center()));
                         tower.cooldown();
                     }
                 }
@@ -557,15 +561,14 @@ impl Scene for LevelScene {
         }
 
         for projectile in self.projectiles.iter() {
-            let cell = layout.cell_rect(
-                projectile.position.y as usize,
-                projectile.position.x as usize,
-            );
             let src = projectile.get_rect();
+            // Note: projectile position is in screen space, not in world space
+            //       we do this in order to have a smooth line from tower to target
+            //       and without it we'd have bullets aligned to the grid which looks bad.
             renderer.send_command(RenderCommand::DrawRect {
                 texture_id: TEXTURE_ID_LEEKSHEET,
                 source: src,
-                destination: cell,
+                destination: projectile.position,
             });
         }
         if let Some((r, c, cell)) = layout.cell_for_mouse(game_context.mouse_context.position) {
