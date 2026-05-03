@@ -120,6 +120,7 @@ struct Tower {
 impl Tower {
     fn update(&mut self, ticks: u32) {
         self.state = advance_ready_state(self.state, ticks);
+        self.sprite_info.advance(ticks);
     }
 
     fn basic(position: Rect) -> Self {
@@ -387,7 +388,7 @@ impl Scene for LevelScene {
         self.base.sprite_info.advance(ticks);
         self.highlight.advance(ticks);
         for tower in &mut self.towers {
-            tower.sprite_info.advance(ticks);
+            tower.update(ticks);
         }
         self.top_bar.update(ticks, game_context, &layout);
         for enemy in &mut self.enemies {
