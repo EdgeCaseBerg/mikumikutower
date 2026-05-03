@@ -487,7 +487,6 @@ impl Scene for LevelScene {
                 for tidx in tower_indices.iter() {
                     let tower = &mut self.towers[*tidx];
                     if tower.can_shoot() {
-                        eprintln!("Pew pew!");
                         // TODO: center the target
                         self.projectiles
                             .push(tower.projectile((enemy.position.x, enemy.position.y)));
