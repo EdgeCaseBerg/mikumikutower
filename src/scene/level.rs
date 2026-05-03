@@ -10,6 +10,8 @@ use crate::game::GameContext;
 use crate::grid_layout::GridLayout;
 use crate::renderer::RenderCommand;
 
+use std::collections::HashMap;
+
 #[derive(Debug, Clone)]
 struct Enemy {
     position: Rect,
@@ -268,14 +270,16 @@ pub struct LevelScene {
     highlight: SpriteInfo,
     top_bar: TopBar,
     enemies: Vec<Enemy>,
+    cell_to_turrets: HashMap<(usize, usize), Vec<usize>>,
 }
 
 // TODO: both base and rect right now are x,y in world coordinates w,h in screen. we should fix that up.
 impl Default for LevelScene {
     fn default() -> LevelScene {
-        let initial_towers = vec![Tower::basic(Rect::new(26, 15, 32, 32))];
-        let initial_enemies = vec![Enemy::teto(Rect::new(16, 9, 32, 32))];
-        LevelScene {
+        let initial_towers = vec![];
+        let initial_enemies = vec![Enemy::teto(Rect::new(27, 9, 32, 32))];
+        let cell_to_turrets = HashMap::new();
+        let mut l = LevelScene {
             base: Base::default(),
             towers: initial_towers,
             grass: sprite_info_grass(),
@@ -283,7 +287,10 @@ impl Default for LevelScene {
             highlight: sprite_info_highlight(),
             top_bar: TopBar::default(),
             enemies: initial_enemies,
-        }
+            cell_to_turrets,
+        };
+        l.add_tower(Tower::basic(Rect::new(26, 15, 32, 32)));
+        l
     }
 }
 
@@ -307,6 +314,22 @@ fn turret_range_iter(
 }
 
 impl LevelScene {
+    fn add_tower(&mut self, tower: Tower) {
+        let idx = self.towers.len();
+        let cr = tower.position.y as u32;
+        let cc = tower.position.x as u32;
+        let range = tower.range as u32;
+        for key in turret_range_iter(cr, cc, range, 18, 32) {
+            self.cell_to_turrets
+                .entry(key)
+                .and_modify(|towers| {
+                    towers.push(idx);
+                })
+                .or_insert(vec![idx]);
+        }
+        self.towers.push(tower);
+    }
+
     fn check_action(&mut self, layout: &GridLayout, game_context: &mut GameContext) {
         let Some(PlayerAction::PlaceTower(_)) = &self.top_bar.current_action else {
             return;
@@ -331,7 +354,7 @@ impl LevelScene {
             };
             tower.position.x = c as isize;
             tower.position.y = r as isize;
-            self.towers.push(tower);
+            self.add_tower(tower);
             game_context.mouse_context.consume_left_click();
         }
 
