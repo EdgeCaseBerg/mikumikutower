@@ -138,13 +138,20 @@ impl Projectile {
     fn update(&mut self, ticks: u32) {
         self.hit_when_ready = advance_ready_state(self.hit_when_ready, ticks);
         self.sprite_info.advance(ticks);
-        // TODO: interpolate position for bullet from start to end based on ticks_waited
+
         match self.hit_when_ready {
             ReadyState::Ready => {
                 self.position.x = self.end.0;
                 self.position.y = self.end.1;
             }
-            _ => {}
+            ReadyState::Cooldown {
+                wait_for,
+                ticks_waited,
+            } => {
+                let progress = ticks_waited as f32 / wait_for as f32;
+                self.position.x = interpolate(self.start.0, self.end.0, progress);
+                self.position.y = interpolate(self.start.1, self.end.1, progress);
+            }
         }
     }
 
