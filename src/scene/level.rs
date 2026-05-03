@@ -295,11 +295,11 @@ impl Default for LevelScene {
 }
 
 fn turret_range_iter(
-    center_r: u32,
-    center_c: u32,
-    range: u32,
-    max_rows: u32,
-    max_columns: u32,
+    center_r: usize,
+    center_c: usize,
+    range: usize,
+    max_rows: usize,
+    max_columns: usize,
 ) -> impl Iterator<Item = (usize, usize)> {
     let cr = center_r;
     let cc = center_c;
@@ -316,9 +316,9 @@ fn turret_range_iter(
 impl LevelScene {
     fn add_tower(&mut self, tower: Tower) {
         let idx = self.towers.len();
-        let cr = tower.position.y as u32;
-        let cc = tower.position.x as u32;
-        let range = tower.range as u32;
+        let cr = tower.position.y as usize;
+        let cc = tower.position.x as usize;
+        let range = tower.range as usize;
         for key in turret_range_iter(cr, cc, range, 18, 32) {
             self.cell_to_turrets
                 .entry(key)
@@ -459,11 +459,11 @@ impl Scene for LevelScene {
 
                 let src = self.highlight.get_rect();
                 for key in turret_range_iter(
-                    r as u32,
-                    c as u32,
-                    tower_to_place.range as u32,
-                    layout.rows as u32,
-                    layout.columns as u32,
+                    r,
+                    c,
+                    tower_to_place.range as usize,
+                    layout.rows,
+                    layout.columns,
                 ) {
                     let cell = layout.cell_rect(key.0, key.1);
                     renderer.send_command(RenderCommand::DrawRect {
