@@ -118,6 +118,20 @@ struct Tower {
 }
 
 impl Tower {
+    fn can_shoot(&self) -> bool {
+        match self.state {
+            ReadyState::Ready => true,
+            _ => false,
+        }
+    }
+
+    fn cooldown(&mut self) {
+        self.state = ReadyState::Cooldown {
+            wait_for: self.cooldown,
+            ticks_waited: 0,
+        };
+    }
+
     fn update(&mut self, ticks: u32) {
         self.state = advance_ready_state(self.state, ticks);
         self.sprite_info.advance(ticks);
@@ -393,6 +407,21 @@ impl Scene for LevelScene {
         self.top_bar.update(ticks, game_context, &layout);
         for enemy in &mut self.enemies {
             enemy.update(ticks);
+
+            // The towers that are in range
+            if let Some(tower_indices) = self
+                .cell_to_turrets
+                .get(&(enemy.position.y as usize, enemy.position.x as usize))
+            {
+                // The towers that can shoot:
+                for tidx in tower_indices.iter() {
+                    let tower = &mut self.towers[*tidx];
+                    if tower.can_shoot() {
+                        eprintln!("Pew pew!");
+                        tower.cooldown();
+                    }
+                }
+            }
         }
         self.check_action(&layout, game_context);
     }
