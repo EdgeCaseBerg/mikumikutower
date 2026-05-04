@@ -203,8 +203,8 @@ impl Tower {
     fn projectile(&self, layout: &GridLayout, to: (isize, isize)) -> Projectile {
         let screen_coordinates =
             layout.cell_rect(self.position.y as usize, self.position.x as usize);
-        let (x, y) = screen_coordinates.center();
-        let ticks_until_hit = 60 / self.range as u32; // TODO tweak as neede
+        let (x, y) = (screen_coordinates.x, screen_coordinates.y);
+        let ticks_until_hit = 60 / self.range as u32; // TODO tweak as need
         Projectile::new((x, y), to, self.damage, ticks_until_hit, layout)
     }
 
