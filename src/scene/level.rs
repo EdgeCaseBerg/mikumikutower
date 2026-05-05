@@ -508,8 +508,37 @@ impl Scene for LevelScene {
 
         self.projectiles.retain_mut(|projectile| {
             projectile.update(ticks);
-            // TODO: figure out collision and damage application
-            !projectile.has_arrived()
+            if !projectile.has_arrived() {
+                return true;
+            }
+
+            // Optimize later if needed. we have a projectile that has arrived somewhere. Did it hit anything?
+            // Potential optimize could use path and if its ever increasing in one direction to stop the list
+            // traversal once we make it past the cell in some way assuming enemy list is sorted by said dimension
+            let cell = layout.cell_for_mouse(Some((
+                projectile.position.x as f32,
+                projectile.position.y as f32,
+            )));
+            let Some((r, c, _)) = cell else {
+                return false;
+            };
+
+            let mut done = false;
+            self.enemies.retain_mut(|enemy| {
+                if done {
+                    return true;
+                }
+                if enemy.position.y as usize != r || enemy.position.x as usize != c {
+                    return true;
+                }
+                enemy.health.damage(projectile.damage);
+                if enemy.health.current != 0 {
+                    return true;
+                }
+                done = true;
+                return false;
+            });
+            false
         });
         self.check_action(&layout, game_context);
     }
