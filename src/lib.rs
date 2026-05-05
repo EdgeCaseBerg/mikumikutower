@@ -55,16 +55,15 @@ impl SpriteInfo {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct Rect<T: PartialOrd + Copy + Add<Output = T> + Sub<Output = T> + Div<Output=T> = isize> {
+pub struct Rect<T: PartialOrd + Copy + Add<Output = T> + Sub<Output = T> + Div<Output = T> = isize>
+{
     pub x: T,
     pub y: T,
     pub width: T,
     pub height: T,
 }
 
-impl<T: PartialOrd + Copy + Add<Output = T> + Sub<Output = T> + Div<Output = T>>
-    Rect<T>
-{
+impl<T: PartialOrd + Copy + Add<Output = T> + Sub<Output = T> + Div<Output = T>> Rect<T> {
     // (x, y) are the corner from which width and height expand from (x + width = x2, similar for y)
     // so its the bottom left corner in a positive coordinate space and the top left in a quadrant 4 space (like most images)
     #[inline(always)]
