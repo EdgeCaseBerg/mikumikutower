@@ -110,7 +110,7 @@ struct Projectile {
     position: Rect,
     start: (isize, isize),
     end: (isize, isize),
-    damage: u32,
+    damage: u8,
     hit_when_ready: ReadyState,
     sprite_info: SpriteInfo,
 }
@@ -121,7 +121,13 @@ fn interpolate(z0: isize, z1: isize, alpha: f32) -> isize {
 }
 
 impl Projectile {
-    fn new(start: (isize, isize), end: (isize, isize), damage: u32, ticks_until_hit: u32, layout: &GridLayout) -> Self {
+    fn new(
+        start: (isize, isize),
+        end: (isize, isize),
+        damage: u8,
+        ticks_until_hit: u32,
+        layout: &GridLayout,
+    ) -> Self {
         let cell_size = layout.cell_size();
         Projectile {
             position: Rect::new(start.0 as isize, start.1 as isize, cell_size.0, cell_size.1),
@@ -176,7 +182,7 @@ struct Tower {
     // Add types later or some such thing.
     sprite_info: SpriteInfo, // a leek sprite for now
     cost: u32,
-    damage: u32,
+    damage: u8,
     cooldown: u32,
 }
 
