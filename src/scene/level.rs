@@ -279,6 +279,7 @@ pub struct TopBar {
     luka_tower: Tower, // slow but strong
     current_action: Option<PlayerAction>,
     money: u32,
+    defeated: u32,
 }
 
 impl Default for TopBar {
@@ -289,6 +290,7 @@ impl Default for TopBar {
             luka_tower: Tower::luka(Rect::new(2, 0, 32, 32)),
             current_action: None,
             money: 50, // TODO: figure out a good starting point for this
+            defeated: 0,
         }
     }
 }
@@ -566,6 +568,8 @@ impl Scene for LevelScene {
                 if enemy.health.current != 0 {
                     return true;
                 }
+                self.top_bar.defeated = self.top_bar.defeated.saturating_add(1);
+                eprintln!("Enemy defeated");
                 done = true;
                 return false;
             });
