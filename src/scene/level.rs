@@ -516,6 +516,9 @@ impl Scene for LevelScene {
         self.top_bar.update(ticks, game_context, &layout);
         for enemy in &mut self.enemies {
             enemy.update(ticks);
+            let tile = self.path[enemy.path_index.min(self.path.len() - 1)];
+            enemy.position.y = tile.y;
+            enemy.position.x = tile.x;
 
             // The towers that are in range
             if let Some(tower_indices) = self
