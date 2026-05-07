@@ -36,9 +36,17 @@ impl Enemy {
 
     fn update(&mut self, ticks: u32) {
         self.ready_state = advance_ready_state(self.ready_state, ticks);
+        match self.ready_state {
+            ReadyState::Ready => {
+                self.path_index = self.path_index.saturating_add(1);
+                self.ready_state = ReadyState::Cooldown {
+                    wait_for: self.speed,
+                    ticks_waited: 0,
+                };
+            }
+            _ => {} // if we knew where we were going to, we could potentially interpolate the position based on cooldown here if we want smooth movement
+        }
         self.sprite_info.advance(ticks);
-        // todo: if we had a target to fire at then we'd fire and transition
-        // into the cooldown state if ready.
     }
 
     fn get_rect(&self) -> Rect {
