@@ -7,7 +7,7 @@ pub mod grid_layout;
 pub mod renderer;
 pub mod scene;
 
-use std::ops::{Add, Div, Shr, Sub};
+use std::ops::{Add, Div, Sub};
 
 use crate::backend::init_backend;
 use crate::game::Game;
@@ -83,7 +83,7 @@ impl<T: PartialOrd + Copy + Add<Output = T> + Sub<Output = T> + Div<Output = T>>
     }
 
     pub fn center(&self) -> (T, T) {
-        let one = (self.x / self.x);
+        let one = self.x / self.x;
         let two = one + one;
         let cx = self.x + self.width / two;
         let cy = self.y + self.height / two;
