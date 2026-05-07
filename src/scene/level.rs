@@ -18,6 +18,8 @@ struct Enemy {
     health: Health,
     sprite_info: SpriteInfo,
     ready_state: ReadyState,
+    path_index: usize,
+    speed: u32,
 }
 
 impl Enemy {
@@ -27,6 +29,8 @@ impl Enemy {
             health: Health::default(), // tweak later.
             sprite_info: sprite_info_teto_walking(),
             ready_state: ReadyState::Ready,
+            path_index: 0,
+            speed: 120,
         }
     }
 
