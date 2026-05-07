@@ -423,7 +423,8 @@ fn turret_range_iter(
 
 impl LevelScene {
     fn initial_path() -> Vec<Rect> {
-        (0..32).rev()
+        (0..32)
+            .rev()
             .flat_map(move |c| {
                 (0..18).filter_map(move |r| {
                     if r == 16 && c > 3 && c < 28 {
