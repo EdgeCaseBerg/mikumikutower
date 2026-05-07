@@ -574,11 +574,16 @@ impl Scene for LevelScene {
             cell_gap: 0,
         };
         for (r, c, cell) in layout.iter_cells() {
-            let src = match (r, c) {
-                (16, c) if c > 3 && c < 28 => self.road.get_rect(),
-                (r, 27) if r < 16 => self.road.get_rect(),
-                _ => self.grass.get_rect(),
-            };
+            let src = self.grass.get_rect();
+            renderer.send_command(RenderCommand::DrawRect {
+                texture_id: TEXTURE_ID_LEEKSHEET,
+                source: src,
+                destination: cell,
+            });
+        }
+        for Rect { x: c, y: r, .. } in self.path.iter() {
+            let src = self.road.get_rect();
+            let cell = layout.cell_rect(*r as usize, *c as usize);
             renderer.send_command(RenderCommand::DrawRect {
                 texture_id: TEXTURE_ID_LEEKSHEET,
                 source: src,
