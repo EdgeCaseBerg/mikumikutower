@@ -357,6 +357,7 @@ impl TopBar {
 pub struct LevelScene {
     base: Base,
     towers: Vec<Tower>,
+    path: Vec<Rect>,
     grass: SpriteInfo,
     road: SpriteInfo,
     highlight: SpriteInfo,
@@ -375,6 +376,7 @@ impl Default for LevelScene {
         let mut level_scene = LevelScene {
             base: Base::default(),
             towers: initial_towers,
+            path: LevelScene::initial_path(),
             grass: sprite_info_grass(),
             road: sprite_info_road(),
             highlight: sprite_info_highlight(),
@@ -408,6 +410,22 @@ fn turret_range_iter(
 }
 
 impl LevelScene {
+    fn initial_path() -> Vec<Rect> {
+        (0..32).rev()
+            .flat_map(move |c| {
+                (0..18).filter_map(move |r| {
+                    if r == 16 && c > 3 && c < 28 {
+                        Some(Rect::new(c, r, 40, 40))
+                    } else if r < 16 && c == 27 {
+                        Some(Rect::new(c, r, 40, 40))
+                    } else {
+                        None
+                    }
+                })
+            })
+            .collect()
+    }
+
     fn add_tower(&mut self, tower: Tower) {
         let idx = self.towers.len();
         let cr = tower.position.y as usize;
