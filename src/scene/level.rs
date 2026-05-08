@@ -623,7 +623,8 @@ impl Scene for LevelScene {
                     return true;
                 }
                 self.top_bar.defeated = self.top_bar.defeated.saturating_add(1);
-                eprintln!("Enemy defeated");
+                self.top_bar.money = self.top_bar.money.saturating_add(10);
+                eprintln!("Enemy defeated, money now {}", self.top_bar.money);
                 done = true;
                 return false;
             });
