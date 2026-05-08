@@ -426,6 +426,7 @@ pub struct LevelScene {
     enemies: Vec<Enemy>,
     cell_to_turrets: HashMap<(usize, usize), Vec<usize>>,
     projectiles: Vec<Projectile>,
+    enemy_spawner: EnemySpawner,
 }
 
 // TODO: both base and rect right now are x,y in world coordinates w,h in screen. we should fix that up.
@@ -445,6 +446,7 @@ impl Default for LevelScene {
             enemies: initial_enemies,
             cell_to_turrets,
             projectiles: Vec::new(),
+            enemy_spawner: EnemySpawner::new(10,120),
         }
     }
 }
@@ -558,6 +560,10 @@ impl Scene for LevelScene {
         self.road.advance(ticks);
         self.base.sprite_info.advance(ticks);
         self.highlight.advance(ticks);
+        self.enemy_spawner.update(ticks);
+        if let Some(new_enemy) = self.enemy_spawner.spawn() {
+            self.enemies.push(new_enemy);
+        }
         for tower in &mut self.towers {
             tower.update(ticks);
         }
