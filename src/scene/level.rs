@@ -55,6 +55,53 @@ impl Enemy {
     }
 }
 
+#[derive(Debug)]
+struct EnemySpawner {
+    ready_state: ReadyState,
+    enemies_per_round: u32,
+    spawn_in_ticks: u32,
+    round: u32,
+    spawned: u32,
+}
+
+impl EnemySpawner {
+    fn new(enemies_in_starting_round: u32, spawn_in_ticks: u32) -> Self {
+        Self {
+            ready_state: ReadyState::Cooldown {
+                wait_for: spawn_in_ticks,
+                ticks_waited: 0,
+            },
+            enemies_per_round: enemies_in_starting_round,
+            spawn_in_ticks,
+            round: 0,
+            spawned: 0,
+        }
+    }
+
+    fn update(&mut self, ticks: u32) {
+        self.ready_state = advance_ready_state(self.ready_state, ticks);
+        // TODO handle advancing round and whatnot
+    }
+
+    fn spawn(&mut self) -> Option<Enemy> {
+        if self.spawned >= self.enemies_per_round {
+            return None;
+        }
+
+        match self.ready_state {
+            ReadyState::Ready => {
+                eprintln!("Enemy spawn");
+                let enemy = Enemy::teto(Rect::new(27, 9, 40, 40));
+                self.spawned = self.spawned.saturating_add(1);
+                Some(enemy)
+            }
+            _ => {
+                None
+            }
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 enum ReadyState {
     Ready,
