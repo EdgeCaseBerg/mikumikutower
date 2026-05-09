@@ -134,6 +134,22 @@ impl EnemySpawner {
             ticks_waited: 0,
         };
     }
+
+    fn start_next_round(&mut self) {
+        match self.ready_state {
+            ReadyState::Ready => {
+                self.round = self.round.saturating_add(1);
+                self.spawned = 0;
+                self.enemies_per_round = self.enemies_per_round.saturating_add(self.enemies_per_round / 3);
+                self.spawn_in_ticks = (self.spawn_in_ticks - 5).max(10);
+                eprintln!("New round {:?} ", self);
+                // TODO maybe increase damage by 1 per every 5 or so rounds?
+                // TODO maybe increase speed by ? per every 5 rounds or so?
+                self.cooldown();
+            },
+            _ => {}
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -668,6 +684,10 @@ impl Scene for LevelScene {
             false
         });
         self.check_action(&layout, game_context);
+
+        if self.enemies.len() == 0 {
+            self.enemy_spawner.start_next_round();
+        }
     }
 
     fn draw(&mut self, game_context: &mut GameContext) {
