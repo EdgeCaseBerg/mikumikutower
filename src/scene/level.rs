@@ -100,6 +100,13 @@ impl EnemySpawner {
             }
         }
     }
+
+    fn cooldown(&mut self) {
+        self.ready_state = ReadyState::Cooldown {
+            wait_for: self.spawn_in_ticks,
+            ticks_waited: 0,
+        };
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -562,6 +569,7 @@ impl Scene for LevelScene {
         self.highlight.advance(ticks);
         self.enemy_spawner.update(ticks);
         if let Some(new_enemy) = self.enemy_spawner.spawn() {
+            self.enemy_spawner.cooldown();
             self.enemies.push(new_enemy);
         }
         for tower in &mut self.towers {
