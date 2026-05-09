@@ -36,17 +36,46 @@ impl Enemy {
 
     fn update(&mut self, ticks: u32) {
         self.ready_state = advance_ready_state(self.ready_state, ticks);
+        self.sprite_info.advance(ticks);
+    }
+
+    fn walk(&mut self, path: &Vec<Rect>) {
+        let last_index = path.len() - 1;
+        if self.path_index >= last_index {
+            // Do not consume ready state if we cannot walk
+            return;
+        }
         match self.ready_state {
             ReadyState::Ready => {
                 self.path_index = self.path_index.saturating_add(1);
+                let tile = path[self.path_index.min(last_index)];
+                self.position.y = tile.y;
+                self.position.x = tile.x;
                 self.ready_state = ReadyState::Cooldown {
                     wait_for: self.speed,
                     ticks_waited: 0,
                 };
             }
-            _ => {} // if we knew where we were going to, we could potentially interpolate the position based on cooldown here if we want smooth movement
+            _ => {}
         }
-        self.sprite_info.advance(ticks);
+    }
+
+    fn attack(&mut self, path: &Vec<Rect>) -> Option<u8> {
+        let last_index = path.len() - 1;
+        if self.path_index < last_index {
+            return None;
+        }
+        match self.ready_state {
+            ReadyState::Ready => {
+                self.ready_state = ReadyState::Cooldown {
+                    wait_for: self.speed,
+                    ticks_waited: 0,
+                };
+                let damage = 10; // TODO store it per enemy かしら.
+                Some(damage)
+            }
+            _ => None,
+        }
     }
 
     fn get_rect(&self) -> Rect {
@@ -95,9 +124,7 @@ impl EnemySpawner {
                 self.spawned = self.spawned.saturating_add(1);
                 Some(enemy)
             }
-            _ => {
-                None
-            }
+            _ => None,
         }
     }
 
@@ -453,7 +480,7 @@ impl Default for LevelScene {
             enemies: initial_enemies,
             cell_to_turrets,
             projectiles: Vec::new(),
-            enemy_spawner: EnemySpawner::new(10,120),
+            enemy_spawner: EnemySpawner::new(10, 120),
         }
     }
 }
@@ -578,9 +605,11 @@ impl Scene for LevelScene {
         self.top_bar.update(ticks, game_context, &layout);
         for enemy in &mut self.enemies {
             enemy.update(ticks);
-            let tile = self.path[enemy.path_index.min(self.path.len() - 1)];
-            enemy.position.y = tile.y;
-            enemy.position.x = tile.x;
+            enemy.walk(&self.path);
+            if let Some(damage) = enemy.attack(&self.path) {
+                self.base.health.damage(damage);
+                eprintln!("Damage base by {:?}, health {:?}", damage, self.base.health);
+            }
 
             // The towers that are in range
             if let Some(tower_indices) = self
