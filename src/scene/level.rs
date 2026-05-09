@@ -71,7 +71,7 @@ impl Enemy {
                     wait_for: self.speed,
                     ticks_waited: 0,
                 };
-                let damage = 10; // TODO store it per enemy かしら.
+                let damage = 1; // TODO store it per enemy かしら.
                 Some(damage)
             }
             _ => None,
