@@ -73,12 +73,14 @@ impl SDL3Textures {
         let miku = base.join("dance.png");
         let my_assets = base.join("made-by-me");
         let leeksheet = my_assets.join("leek-bg1-bg2.png");
+        let fontsheet = base.join("webfontkit-BoldPixels").join("BoldPixels-edit.png");
 
         // TODO: move constants out somewhere re-useable and referenceable
         // TODO: make a load texture command to decouple backend_sdl3 from game details
         self.load(TEXTURE_ID_MIKU, miku);
         self.load(TEXTURE_ID_PORTRAIT, portraits);
         self.load(TEXTURE_ID_LEEKSHEET, leeksheet);
+        self.load(TEXTURE_ID_FONTSHEET, fontsheet);
     }
 }
 
