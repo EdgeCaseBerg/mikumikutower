@@ -40,14 +40,31 @@ impl GridLayout {
         }
 
         let (x, y) = mouse_position.unwrap();
+        self.screen_to_cell(x, y)
+    }
 
-        let (dx, dy) = self.cell_size();
-        let x_idx = x.floor() as isize / dx;
-        let x_idx = x_idx as usize;
-        let y_idx = y.floor() as isize / dy;
-        let y_idx = y_idx as usize;
-        let rect = self.cell_rect(y_idx, x_idx);
-        Some((y_idx, x_idx, rect))
+    pub fn screen_to_cell(&self, wx: f32, wy: f32) -> Option<(usize, usize, Rect)> {
+        let (origin_x, origin_y) = self.origin();
+        let (cell_width, cell_height) = self.cell_size();
+        let step_x = cell_width + self.cell_gap;
+        let step_y = cell_height + self.cell_gap;
+
+        let relative_x = wx as f64 - origin_x as f64;
+        let relative_y = wy as f64 - origin_y as f64;
+
+        let c = (relative_x / step_x as f64).floor() as isize;
+        let r = (relative_y / step_y as f64).floor() as isize;
+
+        if r < 0 || c < 0 {
+            return None;
+        }
+        let r = r as usize;
+        let c = c as usize;
+        if r >= self.rows || c >= self.columns {
+            return None;
+        }
+
+        Some((r, c, self.cell_rect(r, c)))
     }
 
     pub fn cell_rect(&self, r: usize, c: usize) -> Rect {
