@@ -2,10 +2,12 @@ use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{
-    TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, sprite_info_energy, sprite_info_grass,
-    sprite_info_highlight, sprite_info_leek, sprite_info_luka_tower, sprite_info_miku,
-    sprite_info_miku_tower, sprite_info_rin_tower, sprite_info_road, sprite_info_teto_walking,
+    TEXTURE_ID_FONTSHEET, TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, sprite_info_energy,
+    sprite_info_grass, sprite_info_highlight, sprite_info_leek, sprite_info_luka_tower,
+    sprite_info_miku, sprite_info_miku_tower, sprite_info_rin_tower, sprite_info_road,
+    sprite_info_teto_walking,
 };
+use crate::font::get_rects_for_str;
 use crate::game::GameContext;
 use crate::grid_layout::GridLayout;
 use crate::renderer::RenderCommand;
@@ -791,6 +793,23 @@ impl Scene for LevelScene {
                 destination: cell,
             });
         }
+
+        // FONT TEST
+        let rects = get_rects_for_str("MIKU MIKU OO EE UU");
+        let mut font_cells = rects.into_iter();
+        let r = 14;
+        for c in 9..=27 {
+            let Some(src) = font_cells.next() else {
+                continue;
+            };
+            let cell = layout.cell_rect(r, c);
+            renderer.send_command(RenderCommand::DrawRect {
+                texture_id: TEXTURE_ID_FONTSHEET,
+                source: src,
+                destination: cell,
+            });
+        }
+
         self.top_bar.draw(game_context, &layout);
     }
 }
