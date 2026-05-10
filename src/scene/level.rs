@@ -5,7 +5,7 @@ use crate::constants::{
     TEXTURE_ID_FONTSHEET, TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, sprite_info_energy,
     sprite_info_grass, sprite_info_highlight, sprite_info_leek, sprite_info_luka_tower,
     sprite_info_miku, sprite_info_miku_tower, sprite_info_rin_tower, sprite_info_road,
-    sprite_info_teto_walking,
+    sprite_info_teto_walking, sprite_info_topbar_bg,
 };
 use crate::font::get_rects_for_str;
 use crate::game::GameContext;
@@ -381,6 +381,7 @@ pub struct TopBar {
     current_action: Option<PlayerAction>,
     money: u32,
     defeated: u32,
+    bg: SpriteInfo,
 }
 
 impl Default for TopBar {
@@ -392,6 +393,7 @@ impl Default for TopBar {
             current_action: None,
             money: 50, // TODO: figure out a good starting point for this
             defeated: 0,
+            bg: sprite_info_topbar_bg(),
         }
     }
 }
@@ -441,6 +443,18 @@ impl TopBar {
         let Some(ref mut renderer) = game_context.renderer else {
             return;
         };
+
+        for (r, c, cell) in layout.iter_cells() {
+            if r > 0 || c > 19 {
+                break;
+            }
+            let src = self.bg.get_rect();
+            renderer.send_command(RenderCommand::DrawRect {
+                texture_id: TEXTURE_ID_LEEKSHEET,
+                source: src,
+                destination: cell,
+            });
+        }
 
         let rects = get_rects_for_str(&format!(
             "Base Health {}/{}",
