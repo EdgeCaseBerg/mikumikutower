@@ -437,11 +437,86 @@ impl TopBar {
         }
     }
 
-    fn draw(&mut self, game_context: &mut GameContext, layout: &GridLayout) {
+    fn draw(&mut self, game_context: &mut GameContext, layout: &GridLayout, base: &Base) {
         let Some(ref mut renderer) = game_context.renderer else {
             return;
         };
 
+        let rects = get_rects_for_str(&format!(
+            "Base Health {}/{}",
+            base.health.current, base.health.max
+        ));
+        let mut x_offset = 0;
+        let font_cells = rects.into_iter();
+        let start = layout.cell_rect(0, 1);
+        let (tile_cx, tile_cy) = start.center();
+        for (c, src) in font_cells.enumerate() {
+            let cell = center_font_in_tile(start, src, c as isize);
+            x_offset = cell.x + cell.width;
+            renderer.send_command(RenderCommand::DrawRect {
+                texture_id: TEXTURE_ID_FONTSHEET,
+                source: src,
+                destination: cell,
+            });
+        }
+
+        let (_, _, start) = layout
+            .cell_for_mouse(Some((
+                (x_offset + start.width * 2) as f32,
+                (start.y + 1) as f32,
+            )))
+            .expect("todo remove this");
+        let rects = get_rects_for_str(&format!("Money ${}", self.money));
+        let font_cells = rects.into_iter();
+        let (tile_cx, tile_cy) = start.center();
+        for (c, src) in font_cells.enumerate() {
+            let cell = center_font_in_tile(start, src, c as isize);
+            x_offset = cell.x + cell.width;
+            renderer.send_command(RenderCommand::DrawRect {
+                texture_id: TEXTURE_ID_FONTSHEET,
+                source: src,
+                destination: cell,
+            });
+        }
+
+        let (_, _, start) = layout
+            .cell_for_mouse(Some((
+                (x_offset + start.width * 2) as f32,
+                (start.y + 1) as f32,
+            )))
+            .expect("todo remove this 2");
+        let rects = get_rects_for_str(&format!("Turret Select:"));
+        let font_cells = rects.into_iter();
+        let (tile_cx, tile_cy) = start.center();
+        for (c, src) in font_cells.enumerate() {
+            let cell = center_font_in_tile(start, src, c as isize);
+            x_offset = cell.x + cell.width;
+            renderer.send_command(RenderCommand::DrawRect {
+                texture_id: TEXTURE_ID_FONTSHEET,
+                source: src,
+                destination: cell,
+            });
+        }
+
+        let tower_offset = x_offset + start.width;
+        // This is a one time shift and unpure state modification within the draw because
+        // tower positioning needs to align with the above text, but also needs to be accurate
+        // for hover detection and such.
+        let (r, c, start) = layout
+            .cell_for_mouse(Some(((tower_offset) as f32, (start.y + 1) as f32)))
+            .expect("todo remove this 2");
+        if c > self.miku_tower.position.x as usize {
+            for (idx, tower) in vec![
+                &mut self.miku_tower,
+                &mut self.rin_tower,
+                &mut self.luka_tower,
+            ]
+            .into_iter()
+            .enumerate()
+            {
+                tower.position.x = tower.position.x + c as isize;
+            }
+        }
         for tower in vec![&self.miku_tower, &self.rin_tower, &self.luka_tower] {
             let cell = layout.cell_rect(tower.position.y as usize, tower.position.x as usize);
             let src = tower.sprite_info.get_rect();
@@ -796,21 +871,9 @@ impl Scene for LevelScene {
             });
         }
 
-        // FONT TEST
-        let rects = get_rects_for_str("MIKU MIKU OO EE UU");
-        let mut font_cells = rects.into_iter();
-        let r = 14;
-        for c in 9..=27 {
-            let Some(src) = font_cells.next() else {
-                continue;
-            };
-            let cell = layout.cell_rect(r, c);
-            renderer.send_command(RenderCommand::DrawRect {
-                texture_id: TEXTURE_ID_FONTSHEET,
-                source: src,
-                destination: cell,
-            });
-        }
+        self.top_bar.draw(game_context, &layout, &self.base);
+    }
+}
 
 fn center_font_in_tile(anchor: Rect, font_cell: Rect, str_index: isize) -> Rect {
     let (cx, cy) = anchor.center();
