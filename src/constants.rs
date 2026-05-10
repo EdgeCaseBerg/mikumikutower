@@ -3,6 +3,7 @@ use crate::SpriteInfo;
 pub const TEXTURE_ID_MIKU: usize = 0;
 pub const TEXTURE_ID_PORTRAIT: usize = 1;
 pub const TEXTURE_ID_LEEKSHEET: usize = 2;
+pub const TEXTURE_ID_FONTSHEET: usize = 3;
 
 pub const fn sprite_info_leek() -> SpriteInfo {
     SpriteInfo {
