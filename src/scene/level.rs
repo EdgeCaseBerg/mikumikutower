@@ -7,7 +7,7 @@ use crate::constants::{
     sprite_info_miku, sprite_info_miku_tower, sprite_info_rin_tower, sprite_info_road,
     sprite_info_teto_walking, sprite_info_topbar_bg,
 };
-use crate::font::get_rects_for_str;
+use crate::font::{center_font_in_tile, get_rects_for_str};
 use crate::game::GameContext;
 use crate::grid_layout::GridLayout;
 use crate::renderer::RenderCommand;
@@ -931,15 +931,5 @@ impl Scene for LevelScene {
         }
 
         self.top_bar.draw(game_context, &layout, &self.base);
-    }
-}
-
-fn center_font_in_tile(anchor: Rect, font_cell: Rect, str_index: isize) -> Rect {
-    let (cx, cy) = anchor.center();
-    Rect {
-        x: cx + str_index * font_cell.width,
-        y: cy - font_cell.height / 2,
-        width: font_cell.width,
-        height: font_cell.height,
     }
 }
