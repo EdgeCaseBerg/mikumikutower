@@ -121,7 +121,6 @@ impl EnemySpawner {
 
         match self.ready_state {
             ReadyState::Ready => {
-                eprintln!("Enemy spawn");
                 let enemy = Enemy::teto(Rect::new(27, 9, 40, 40));
                 self.spawned = self.spawned.saturating_add(1);
                 Some(enemy)
@@ -426,7 +425,6 @@ impl TopBar {
                     // annoyingly, we cant call self.buy_tower without the borrow checker bitching.
                     // because it can't understand that only the money field will be mutated within that call.
                     self.money = self.money.saturating_sub(tower.cost);
-                    eprintln!("Buy tower {}", self.money);
                 } else if !game_context.mouse_context.right_clicked {
                     // We are currently hovering over a tower.
                     self.hover_action = Some(PlayerAction::PlaceTower(tower.clone()));
