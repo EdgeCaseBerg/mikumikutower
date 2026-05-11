@@ -475,10 +475,7 @@ impl TopBar {
         }
 
         let (_, _, start) = layout
-            .cell_for_mouse(Some((
-                (x_offset + start.width * 2) as f32,
-                (start.y + 1) as f32,
-            )))
+            .screen_to_cell((x_offset + start.width * 2) as f32, (start.y + 1) as f32)
             .expect("todo remove this");
         let rects = get_rects_for_str(&format!("Money ${}", self.money));
         let font_cells = rects.into_iter();
@@ -494,10 +491,7 @@ impl TopBar {
         }
 
         let (_, _, start) = layout
-            .cell_for_mouse(Some((
-                (x_offset + start.width * 2) as f32,
-                (start.y + 1) as f32,
-            )))
+            .screen_to_cell((x_offset + start.width * 2) as f32, (start.y + 1) as f32)
             .expect("todo remove this 2");
         let rects = get_rects_for_str(&format!("Turret Select:"));
         let font_cells = rects.into_iter();
