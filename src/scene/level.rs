@@ -407,6 +407,7 @@ impl TopBar {
             return;
         };
 
+        let mut not_hovering_on_tower = true;
         for tower in vec![
             &mut self.miku_tower,
             &mut self.rin_tower,
@@ -414,6 +415,7 @@ impl TopBar {
         ] {
             let tower_cell = layout.cell_rect(tower.position.y as usize, tower.position.x as usize);
             if tower_cell.contains(rect.x + 1, rect.y + 1) {
+                not_hovering_on_tower = false;
                 tower.sprite_info.advance(ticks);
                 if game_context.mouse_context.left_clicked
                     && self.current_action.is_none()
@@ -425,6 +427,9 @@ impl TopBar {
                     // because it can't understand that only the money field will be mutated within that call.
                     self.money = self.money.saturating_sub(tower.cost);
                     eprintln!("Buy tower {}", self.money);
+                } else if !game_context.mouse_context.right_clicked {
+                    // We are currently hovering over a tower.
+                    self.hover_action = Some(PlayerAction::PlaceTower(tower.clone()));
                 }
             }
         }
@@ -438,6 +443,9 @@ impl TopBar {
                 }
                 _ => {}
             }
+        }
+        if not_hovering_on_tower {
+            self.hover_action = None;
         }
     }
 
