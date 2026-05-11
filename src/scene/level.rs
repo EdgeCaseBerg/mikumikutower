@@ -544,6 +544,50 @@ impl TopBar {
                 destination: cell,
             });
         }
+
+        // TODO: maybe move to a helper if the borrow checker will let us
+        let Some(PlayerAction::PlaceTower(tower)) = self.hover_action.take() else {
+            return;
+        };
+
+        // If there's an on hover going on, display turrent information at the mouse:
+        let Some((r, c, rect)) = layout.cell_for_mouse(game_context.mouse_context.position) else {
+            return;
+        };
+        let anchor = layout.cell_rect(r + 1, c);
+        let (csx, cxy) = layout.cell_size();
+        let popup_layout = GridLayout {
+            area: Rect::new(anchor.x, anchor.y, csx * 4, cxy * 4),
+            rows: 4,
+            columns: 1,
+            cell_gap: 4,
+        };
+        for (r, c, mut cell) in popup_layout.iter_cells() {
+            let src = self.bg.get_rect();
+            renderer.send_command(RenderCommand::DrawRect {
+                texture_id: TEXTURE_ID_LEEKSHEET,
+                source: src,
+                destination: cell,
+            });
+            let glyphs = match r {
+                0 => get_rects_for_str(&format!("Damage {}", tower.damage)),
+                1 => get_rects_for_str(&format!("Cost {}", tower.cost)),
+                2 => get_rects_for_str(&format!("Cooldown {}", tower.cooldown)),
+                3 => get_rects_for_str(&format!("Range {}", tower.range)),
+                _ => get_rects_for_str(&format!("...")),
+            };
+            let font_cells = glyphs.into_iter();
+            let (tile_cx, tile_cy) = cell.center();
+            cell.x = cell.x - cell.width / 4;
+            for (c, src) in font_cells.enumerate() {
+                let mut cell = center_font_in_tile(cell, src, c as isize);
+                renderer.send_command(RenderCommand::DrawRect {
+                    texture_id: TEXTURE_ID_FONTSHEET,
+                    source: src,
+                    destination: cell,
+                });
+            }
+        }
     }
 
     fn buy_tower(&mut self, tower: &Tower) {
