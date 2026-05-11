@@ -382,6 +382,7 @@ pub struct TopBar {
     money: u32,
     defeated: u32,
     bg: SpriteInfo,
+    hover_action: Option<PlayerAction>,
 }
 
 impl Default for TopBar {
@@ -394,6 +395,7 @@ impl Default for TopBar {
             money: 50, // TODO: figure out a good starting point for this
             defeated: 0,
             bg: sprite_info_topbar_bg(),
+            hover_action: None,
         }
     }
 }
