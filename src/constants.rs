@@ -6,7 +6,6 @@ pub const TEXTURE_ID_LEEKSHEET: usize = 2;
 pub const TEXTURE_ID_FONTSHEET: usize = 3;
 pub const TEXTURE_ID_GAMEOVER: usize = 4;
 
-
 pub const fn sprite_info_leek() -> SpriteInfo {
     SpriteInfo {
         start_x: 0,
