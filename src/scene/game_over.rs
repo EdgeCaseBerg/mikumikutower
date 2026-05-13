@@ -3,7 +3,7 @@ use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{
     TEXTURE_ID_FONTSHEET, TEXTURE_ID_GAMEOVER, TEXTURE_ID_LEEKSHEET, sprite_info_gameover_miku,
-    sprite_info_topbar_bg,
+    sprite_info_highlight, sprite_info_topbar_bg,
 };
 use crate::font::{center_font_in_tile, get_rects_for_str};
 use crate::game::GameContext;
@@ -16,6 +16,7 @@ struct Button {
     hovered: bool,
     clicked: bool,
     bg: SpriteInfo,
+    highlight: SpriteInfo,
 }
 
 impl Button {
@@ -26,6 +27,7 @@ impl Button {
             hovered: false,
             clicked: false,
             bg: sprite_info_topbar_bg(),
+            highlight: sprite_info_highlight(),
         }
     }
 
@@ -46,7 +48,7 @@ impl Button {
         }
     }
 
-    fn update(&mut self, game_context: &GameContext, parent_layout: &GridLayout) {
+    fn update(&mut self, ticks: u32, game_context: &GameContext, parent_layout: &GridLayout) {
         let layout = self.relative_layout(parent_layout);
         let Some((r, c, cell)) = layout.cell_for_mouse(game_context.mouse_context.position) else {
             self.hovered = false;
@@ -55,6 +57,7 @@ impl Button {
         };
 
         self.hovered = true;
+        self.highlight.advance(ticks);
 
         if game_context.mouse_context.left_clicked {
             self.clicked = true;
@@ -75,10 +78,19 @@ impl Button {
             destination: anchor,
         });
 
+        if self.hovered {
+            let src = self.highlight.get_rect();
+            renderer.send_command(RenderCommand::DrawRect {
+                texture_id: TEXTURE_ID_LEEKSHEET,
+                source: src,
+                destination: anchor,
+            });
+        }
+
         let glyphs = get_rects_for_str(&self.text);
         let (cx, cy) = anchor.center();
         for (c, src) in glyphs.iter().enumerate() {
-            // let mut cell = center_font_in_tile(anchor, *src, c as isize);
+            // leave room for a glpyh on either side
             let glyph_display_width = anchor.width / (glyphs.len() as isize + 2);
             // mono font is same height as width (16x16 native)
             let glyph_display_height = glyph_display_width;
@@ -148,8 +160,8 @@ impl Scene for GameOverScene {
 
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
         let layout = GameOverScene::layout(&game_context);
-        self.give_up_btn.update(game_context, &layout);
-        self.try_again_btn.update(game_context, &layout);
+        self.give_up_btn.update(ticks, game_context, &layout);
+        self.try_again_btn.update(ticks, game_context, &layout);
 
         // Check where mouse is, hover over quit -> miku sobbing (frame 1)
         if self.give_up_btn.hovered {
