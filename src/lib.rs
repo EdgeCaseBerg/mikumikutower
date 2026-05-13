@@ -14,6 +14,7 @@ use crate::backend::init_backend;
 use crate::game::Game;
 use crate::game_options::GameOptions;
 use crate::scene::Scene;
+use crate::scene::game_over::GameOverScene;
 use crate::scene::level::LevelScene;
 use crate::scene::loading::TestScene;
 
@@ -101,5 +102,6 @@ pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
     game_context.renderer = Some(renderer);
     game.scene = Some(Box::new(TestScene::default()));
     game.scene = Some(Box::new(LevelScene::default()));
+    game.scene = Some(Box::new(GameOverScene::default()));
     event_loop.run(game, &mut game_context);
 }
