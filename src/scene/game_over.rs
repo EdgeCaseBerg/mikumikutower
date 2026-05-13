@@ -111,7 +111,6 @@ impl Button {
 }
 
 pub struct GameOverScene {
-    // TODO: probably move sprite info around or something... but for now, test scene!
     miku: SpriteInfo,
     try_again_btn: Button,
     give_up_btn: Button,
