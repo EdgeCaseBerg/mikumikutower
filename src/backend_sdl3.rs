@@ -76,6 +76,7 @@ impl SDL3Textures {
         let fontsheet = base
             .join("webfontkit-BoldPixels")
             .join("BoldPixels-edit.png");
+        let gameover = my_assets.join("GameOver.png");
 
         // TODO: move constants out somewhere re-useable and referenceable
         // TODO: make a load texture command to decouple backend_sdl3 from game details
@@ -83,6 +84,7 @@ impl SDL3Textures {
         self.load(TEXTURE_ID_PORTRAIT, portraits);
         self.load(TEXTURE_ID_LEEKSHEET, leeksheet);
         self.load(TEXTURE_ID_FONTSHEET, fontsheet);
+        self.load(TEXTURE_ID_GAMEOVER, gameover);
     }
 }
 

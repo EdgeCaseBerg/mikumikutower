@@ -4,6 +4,8 @@ pub const TEXTURE_ID_MIKU: usize = 0;
 pub const TEXTURE_ID_PORTRAIT: usize = 1;
 pub const TEXTURE_ID_LEEKSHEET: usize = 2;
 pub const TEXTURE_ID_FONTSHEET: usize = 3;
+pub const TEXTURE_ID_GAMEOVER: usize = 4;
+
 
 pub const fn sprite_info_leek() -> SpriteInfo {
     SpriteInfo {
@@ -155,6 +157,19 @@ pub const fn sprite_info_topbar_bg() -> SpriteInfo {
         width: 32,
         height: 32,
         frames: 1,
+        current_frame: 0,
+        framerate_per_second: 60,
+        delta: 0,
+    }
+}
+
+pub const fn sprite_info_gameover_miku() -> SpriteInfo {
+    SpriteInfo {
+        start_x: 0,
+        start_y: 0,
+        width: 480,
+        height: 320,
+        frames: 3,
         current_frame: 0,
         framerate_per_second: 60,
         delta: 0,
