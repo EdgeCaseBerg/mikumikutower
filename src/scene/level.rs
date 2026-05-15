@@ -191,6 +191,10 @@ impl Health {
     fn damage(&mut self, amount: u8) {
         self.current = self.current.saturating_sub(amount);
     }
+
+    fn is_dead(&self) -> bool {
+        self.current <= 0
+    }
 }
 
 impl Default for Health {
@@ -763,7 +767,9 @@ impl Scene for LevelScene {
             enemy.walk(&self.path);
             if let Some(damage) = enemy.attack(&self.path) {
                 self.base.health.damage(damage);
-                eprintln!("Damage base by {:?}, health {:?}", damage, self.base.health);
+                if self.base.health.is_dead() && game_context.next_scene.is_none() {
+                    game_context.queue_game_over();
+                }
             }
 
             // The towers that are in range
