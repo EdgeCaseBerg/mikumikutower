@@ -15,7 +15,6 @@ pub struct Game {
     // counters to track if we should render anything when drawing (variable rendering)
     next_draw_tick: u128,
     should_draw: bool,
-    // TODO: current scene and state when we make em
     pub scene: Option<Box<dyn Scene>>,
 }
 
@@ -55,6 +54,7 @@ pub struct GameContext {
     pub renderer: Option<Box<dyn Renderer>>,
     pub mouse_context: MouseContext,
     pub screen_size: (u32, u32),
+    pub next_scene: Option<Box<dyn Scene>>,
 }
 
 impl Default for GameContext {
@@ -63,6 +63,7 @@ impl Default for GameContext {
             renderer: None,
             mouse_context: MouseContext::default(),
             screen_size: (1280, 720),
+            next_scene: None,
         }
     }
 }
