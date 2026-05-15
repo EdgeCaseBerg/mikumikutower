@@ -50,7 +50,7 @@ impl Button {
 
     fn update(&mut self, ticks: u32, game_context: &GameContext, parent_layout: &GridLayout) {
         let layout = self.relative_layout(parent_layout);
-        let Some((r, c, cell)) = layout.cell_for_mouse(game_context.mouse_context.position) else {
+        let Some(_) = layout.cell_for_mouse(game_context.mouse_context.position) else {
             self.hovered = false;
             self.clicked = false;
             return;
