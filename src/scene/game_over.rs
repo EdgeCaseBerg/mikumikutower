@@ -171,8 +171,15 @@ impl Scene for GameOverScene {
             self.miku.current_frame = 0;
         }
 
-        // Check where mouse is, hover over try again -> miku getting up (frame 2)
-        // no mouse over button -> miku on ground (frame 0)
+        if self.try_again_btn.clicked && game_context.next_scene.is_none() {
+            game_context.queue_level();
+            self.try_again_btn.clicked = false;
+        }
+
+        if self.give_up_btn.clicked && game_context.next_scene.is_none() {
+            game_context.shutdown();
+            self.give_up_btn.clicked = false;
+        }
     }
     fn draw(&mut self, game_context: &mut GameContext) {
         let layout = GameOverScene::layout(&game_context);
