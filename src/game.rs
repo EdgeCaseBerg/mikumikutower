@@ -1,6 +1,8 @@
+use crate::TestScene;
 use crate::renderer::Color;
 use crate::renderer::Renderer;
 use crate::scene::Scene;
+use crate::scene::level::LevelScene;
 
 use std::time::Duration;
 use std::time::Instant;
@@ -65,6 +67,18 @@ impl Default for GameContext {
             screen_size: (1280, 720),
             next_scene: None,
         }
+    }
+}
+
+impl GameContext {
+    pub fn queue_level(&mut self) {
+        self.next_scene = Some(Box::new(LevelScene::default()));
+    }
+
+    pub fn shutdown(&mut self) {
+        // TODO: Signal to shutdown the application. I guess.
+        eprintln!("I want to shut down please");
+        self.next_scene = Some(Box::new(TestScene::default()));
     }
 }
 
