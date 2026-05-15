@@ -2,6 +2,7 @@ use crate::TestScene;
 use crate::renderer::Color;
 use crate::renderer::Renderer;
 use crate::scene::Scene;
+use crate::scene::game_over::GameOverScene;
 use crate::scene::level::LevelScene;
 
 use std::time::Duration;
@@ -77,8 +78,11 @@ impl GameContext {
 
     pub fn shutdown(&mut self) {
         // TODO: Signal to shutdown the application. I guess.
-        eprintln!("I want to shut down please");
         self.next_scene = Some(Box::new(TestScene::default()));
+    }
+
+    pub fn queue_game_over(&mut self) {
+        self.next_scene = Some(Box::new(GameOverScene::default()));
     }
 }
 
