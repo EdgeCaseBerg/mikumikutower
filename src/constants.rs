@@ -190,3 +190,16 @@ pub const fn sprite_info_gameover_miku() -> SpriteInfo {
         delta: 0,
     }
 }
+
+pub const fn sprite_info_portrait() -> SpriteInfo {
+    SpriteInfo {
+        start_x: 0,
+        start_y: 0,
+        width: 2478,
+        height: 402,
+        frames: 1,
+        current_frame: 0,
+        framerate_per_second: 60,
+        delta: 0,
+    }
+}
