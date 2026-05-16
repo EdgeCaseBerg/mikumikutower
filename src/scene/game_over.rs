@@ -5,7 +5,7 @@ use crate::constants::{
     TEXTURE_ID_FONTSHEET, TEXTURE_ID_GAMEOVER, TEXTURE_ID_LEEKSHEET, sprite_info_gameover_miku,
     sprite_info_highlight, sprite_info_topbar_bg,
 };
-use crate::font::{center_font_in_tile, get_rects_for_str};
+use crate::font::get_rects_for_str;
 use crate::game::GameContext;
 use crate::grid_layout::GridLayout;
 use crate::renderer::RenderCommand;
@@ -155,7 +155,15 @@ impl Default for GameOverScene {
 }
 
 impl Scene for GameOverScene {
-    fn init(&mut self, _game_context: &mut GameContext) {}
+    fn init(&mut self, game_context: &mut GameContext) {
+        let Some(ref mut asset_loader) = game_context.asset_loader else {
+            return;
+        };
+
+        asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_GAMEOVER);
+        asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_LEEKSHEET);
+        asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_FONTSHEET);
+    }
 
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
         let layout = GameOverScene::layout(&game_context);
