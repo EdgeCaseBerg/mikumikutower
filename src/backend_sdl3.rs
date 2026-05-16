@@ -199,12 +199,9 @@ impl BackendEventLoop for EventLoopSDL3 {
                 }
             }
             game.update(game_context);
-            if let Some(_) = &game_context.next_scene {
-                game.scene = std::mem::take(&mut game_context.next_scene);
-                let Some(scene) = game.scene.as_mut() else {
-                    unreachable!("We literally just set this. Impossible.");
-                };
-                scene.init(game_context);
+            if let Some(mut next_scene) = game_context.next_scene.take() {
+                next_scene.init(game_context);
+                game.scene = Some(next_scene);
                 game.reset_for_next_scene();
             }
             game.draw(game_context);
