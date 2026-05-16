@@ -64,29 +64,6 @@ impl SDL3Textures {
         let tex = make_static(tex);
         self.texture_by_id.insert(id, tex);
     }
-
-    fn init(&mut self, game_options: &GameOptions) {
-        // TODO: should probably move this out somewhere else
-        let base = get_current_directory().expect("cant get base path");
-        let base = base.join(game_options.assets_path.clone());
-        let chaim_dir = base.join("chaim-vester");
-        let portraits = chaim_dir.join("portraits-spritesheet.png");
-        let miku = base.join("dance.png");
-        let my_assets = base.join("made-by-me");
-        let leeksheet = my_assets.join("leek-bg1-bg2.png");
-        let fontsheet = base
-            .join("webfontkit-BoldPixels")
-            .join("BoldPixels-edit.png");
-        let gameover = my_assets.join("GameOver.png");
-
-        // TODO: move constants out somewhere re-useable and referenceable
-        // TODO: make a load texture command to decouple backend_sdl3 from game details
-        self.load(TEXTURE_ID_MIKU, miku);
-        self.load(TEXTURE_ID_PORTRAIT, portraits);
-        self.load(TEXTURE_ID_LEEKSHEET, leeksheet);
-        self.load(TEXTURE_ID_FONTSHEET, fontsheet);
-        self.load(TEXTURE_ID_GAMEOVER, gameover);
-    }
 }
 
 struct AssetLoaderSDL3 {
@@ -157,7 +134,6 @@ impl Backend for BackendSDL3 {
 
         let canvas = window.into_canvas();
         let mut textures = SDL3Textures::from(canvas.texture_creator());
-        textures.init(game_options);
 
         // If we end up having some custom form of cursor for each scene then we can do this
         // self.sdl.mouse().show_cursor(false);
