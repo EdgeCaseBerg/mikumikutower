@@ -1,8 +1,8 @@
+use crate::asset_loader::AssetLoader;
 use crate::game::Game;
 use crate::game::GameContext;
 use crate::game_options::GameOptions;
 use crate::renderer::Renderer;
-use crate::asset_loader::AssetLoader;
 
 pub trait Backend {
     fn create_event_loop(&self, game_options: &GameOptions) -> Box<dyn BackendEventLoop>;
