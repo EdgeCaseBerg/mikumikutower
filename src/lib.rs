@@ -1,3 +1,4 @@
+pub mod asset_loader;
 pub mod backend;
 pub mod backend_sdl3;
 pub mod constants;

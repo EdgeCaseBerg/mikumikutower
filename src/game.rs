@@ -1,4 +1,5 @@
 use crate::TestScene;
+use crate::asset_loader::AssetLoader;
 use crate::renderer::Color;
 use crate::renderer::Renderer;
 use crate::scene::Scene;
@@ -58,6 +59,7 @@ pub struct GameContext {
     pub mouse_context: MouseContext,
     pub screen_size: (u32, u32),
     pub next_scene: Option<Box<dyn Scene>>,
+    pub asset_loader: Option<Box<dyn AssetLoader>>,
 }
 
 impl Default for GameContext {
@@ -67,6 +69,7 @@ impl Default for GameContext {
             mouse_context: MouseContext::default(),
             screen_size: (1280, 720),
             next_scene: None,
+            asset_loader: None,
         }
     }
 }
