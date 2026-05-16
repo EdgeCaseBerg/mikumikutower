@@ -244,6 +244,11 @@ impl BackendEventLoop for EventLoopSDL3 {
         };
         Box::new(r)
     }
+
+    fn create_asset_loader(&self, game_options: &GameOptions) -> Box<dyn AssetLoader> {
+        let a = AssetLoaderSDL3::new(self.context.clone(), game_options);
+        Box::new(a)
+    }
 }
 
 struct RendererSDL3 {
