@@ -1,10 +1,26 @@
 use crate::SpriteInfo;
+use std::path::PathBuf;
 
 pub const TEXTURE_ID_MIKU: usize = 0;
 pub const TEXTURE_ID_PORTRAIT: usize = 1;
 pub const TEXTURE_ID_LEEKSHEET: usize = 2;
 pub const TEXTURE_ID_FONTSHEET: usize = 3;
 pub const TEXTURE_ID_GAMEOVER: usize = 4;
+
+pub fn id_to_relative_path(id: usize) -> PathBuf {
+    match id {
+        TEXTURE_ID_LEEKSHEET => PathBuf::new().join("made-by-me").join("leek-bg1-bg2.png"),
+        TEXTURE_ID_GAMEOVER => PathBuf::new().join("made-by-me").join("GameOver.png"),
+        TEXTURE_ID_PORTRAIT => PathBuf::new()
+            .join("chaim-vester")
+            .join("portraits-spritesheet.png"),
+        TEXTURE_ID_MIKU => PathBuf::new().join("dance.png"),
+        TEXTURE_ID_FONTSHEET => PathBuf::new()
+            .join("webfontkit-BoldPixels")
+            .join("BoldPixels-edit.png"),
+        _ => PathBuf::new(), // could maybe panic here, though stuff like unreachable! isnt a const function
+    }
+}
 
 pub const fn sprite_info_leek() -> SpriteInfo {
     SpriteInfo {
