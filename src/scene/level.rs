@@ -738,7 +738,15 @@ impl LevelScene {
 }
 
 impl Scene for LevelScene {
-    fn init(&mut self, _game_context: &mut GameContext) {}
+    fn init(&mut self, game_context: &mut GameContext) {
+        let Some(ref mut asset_loader) = game_context.asset_loader else {
+            return;
+        };
+
+        asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_MIKU);
+        asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_LEEKSHEET);
+        asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_FONTSHEET);
+    }
 
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
         let (screen_width, screen_height) = game_context.screen_size;
