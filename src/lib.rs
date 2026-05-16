@@ -101,6 +101,8 @@ pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
     game_context.screen_size = (game_options.window_width, game_options.window_height);
     let renderer = event_loop.new_renderer(game_options);
     game_context.renderer = Some(renderer);
+    let asset_loader = event_loop.create_asset_loader(game_options);
+    game_context.asset_loader = Some(asset_loader);
     game.scene = Some(Box::new(TestScene::default()));
     game.scene = Some(Box::new(LevelScene::default()));
     game.scene = Some(Box::new(GameOverScene::default()));
