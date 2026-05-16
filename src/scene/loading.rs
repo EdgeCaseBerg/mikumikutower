@@ -1,7 +1,9 @@
 use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
-use crate::constants::{TEXTURE_ID_MIKU, TEXTURE_ID_PORTRAIT};
+use crate::constants::{
+    TEXTURE_ID_MIKU, TEXTURE_ID_PORTRAIT, sprite_info_miku, sprite_info_portrait,
+};
 use crate::game::GameContext;
 use crate::renderer::RenderCommand;
 
@@ -19,36 +21,18 @@ impl Default for TestScene {
 }
 
 impl Scene for TestScene {
-    fn init(&mut self, _game_context: &mut GameContext) {
-        // TODO: we'll move the texture ids out to constants to match up with the backend renderer load calls in renderer
-        let miku = SpriteInfo {
-            start_x: 0,
-            start_y: 0,
-            width: 71,
-            height: 54,
-            frames: 6,
-            current_frame: 0,
-            framerate_per_second: 10,
-            delta: 0,
-        };
-        self.sprites.push((TEXTURE_ID_MIKU, miku));
+    fn init(&mut self, game_context: &mut GameContext) {
+        let miku = sprite_info_miku();
+        let portrait = sprite_info_portrait();
 
-        let portrait = SpriteInfo {
-            start_x: 0,
-            start_y: 0,
-            width: 2478,
-            height: 402,
-            frames: 1,
-            current_frame: 0,
-            framerate_per_second: 60,
-            delta: 0,
-        };
+        self.sprites.push((TEXTURE_ID_MIKU, miku));
         self.sprites.push((TEXTURE_ID_PORTRAIT, portrait));
 
-        // TODO: call load here instead maybe?
-        // if Some(renderer) = game_context.renderer {
-
-        // }
+        let Some(ref mut asset_loader) = game_context.asset_loader else {
+            return;
+        };
+        asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_MIKU);
+        asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_PORTRAIT);
     }
     fn update(&mut self, ticks: u32, _game_context: &mut GameContext) {
         for (_, sprite) in self.sprites.iter_mut() {
