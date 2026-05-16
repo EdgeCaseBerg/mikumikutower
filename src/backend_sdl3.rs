@@ -1,4 +1,5 @@
 use crate::Rect;
+use crate::asset_loader::AssetLoader;
 use crate::backend::*;
 use crate::constants::*;
 use crate::game::Game;
@@ -85,6 +86,34 @@ impl SDL3Textures {
         self.load(TEXTURE_ID_LEEKSHEET, leeksheet);
         self.load(TEXTURE_ID_FONTSHEET, fontsheet);
         self.load(TEXTURE_ID_GAMEOVER, gameover);
+    }
+}
+
+struct AssetLoaderSDL3 {
+    context: Rc<RefCell<SDL3Context>>,
+    base_path: PathBuf,
+}
+
+impl AssetLoaderSDL3 {
+    fn new(context: Rc<RefCell<SDL3Context>>, game_options: &GameOptions) -> Self {
+        let base = get_current_directory().expect("cant get base path");
+        let base = base.join(game_options.assets_path.clone());
+        Self {
+            context,
+            base_path: base,
+        }
+    }
+}
+
+impl AssetLoader for AssetLoaderSDL3 {
+    fn ensure_texture_spritesheet_loaded(&mut self, id: usize) {
+        let ctx = &mut *self.context.borrow_mut();
+        if !ctx.textures.get_texture(id).is_none() {
+            return;
+        }
+        let asset_path = id_to_relative_path(id);
+        let asset_path = self.base_path.join(asset_path);
+        ctx.textures.load(id, asset_path);
     }
 }
 
