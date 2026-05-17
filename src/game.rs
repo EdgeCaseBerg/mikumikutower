@@ -5,6 +5,7 @@ use crate::renderer::Renderer;
 use crate::scene::Scene;
 use crate::scene::game_over::GameOverScene;
 use crate::scene::level::LevelScene;
+use crate::scene::shutting_down::ShuttingDownScene;
 
 use std::time::Duration;
 use std::time::Instant;
@@ -82,8 +83,7 @@ impl GameContext {
     }
 
     pub fn shutdown(&mut self) {
-        // TODO: Signal to shutdown the application. I guess.
-        self.next_scene = Some(Box::new(TestScene::default()));
+        self.next_scene = Some(Box::new(ShuttingDownScene::default()));
     }
 
     pub fn queue_game_over(&mut self) {
