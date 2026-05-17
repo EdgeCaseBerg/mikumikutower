@@ -6,6 +6,7 @@ pub const TEXTURE_ID_PORTRAIT: usize = 1;
 pub const TEXTURE_ID_LEEKSHEET: usize = 2;
 pub const TEXTURE_ID_FONTSHEET: usize = 3;
 pub const TEXTURE_ID_GAMEOVER: usize = 4;
+pub const TEXTURE_ID_MIKU_WAVE: usize = 5;
 
 pub fn id_to_relative_path(id: usize) -> PathBuf {
     match id {
@@ -18,6 +19,7 @@ pub fn id_to_relative_path(id: usize) -> PathBuf {
         TEXTURE_ID_FONTSHEET => PathBuf::new()
             .join("webfontkit-BoldPixels")
             .join("BoldPixels-edit.png"),
+        TEXTURE_ID_MIKU_WAVE => PathBuf::new().join("made-by-me").join("miku-wave.png"),
         _ => PathBuf::new(), // could maybe panic here, though stuff like unreachable! isnt a const function
     }
 }
@@ -200,6 +202,19 @@ pub const fn sprite_info_portrait() -> SpriteInfo {
         frames: 1,
         current_frame: 0,
         framerate_per_second: 60,
+        delta: 0,
+    }
+}
+
+pub const fn sprite_info_miku_wave() -> SpriteInfo {
+    SpriteInfo {
+        start_x: 0,
+        start_y: 0,
+        width: 320,
+        height: 320,
+        frames: 2,
+        current_frame: 0,
+        framerate_per_second: 30,
         delta: 0,
     }
 }

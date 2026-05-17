@@ -1,7 +1,7 @@
 use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
-use crate::constants::{TEXTURE_ID_MIKU, sprite_info_miku};
+use crate::constants::{TEXTURE_ID_MIKU_WAVE, sprite_info_miku_wave};
 use crate::game::GameContext;
 use crate::grid_layout::GridLayout;
 use crate::renderer::RenderCommand;
@@ -27,7 +27,7 @@ impl ShuttingDownScene {
 impl Default for ShuttingDownScene {
     fn default() -> Self {
         Self {
-            miku: sprite_info_miku(),
+            miku: sprite_info_miku_wave(),
             countdown: ReadyState::Cooldown {
                 ticks_waited: 0,
                 wait_for: 120,
@@ -41,7 +41,7 @@ impl Scene for ShuttingDownScene {
         let Some(ref mut asset_loader) = game_context.asset_loader else {
             return;
         };
-        asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_MIKU);
+        asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_MIKU_WAVE);
     }
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
         self.miku.advance(ticks);
@@ -60,7 +60,7 @@ impl Scene for ShuttingDownScene {
         let destination = layout.cell_rect(1, 1);
         let src = self.miku.get_rect();
         renderer.send_command(RenderCommand::DrawRect {
-            texture_id: TEXTURE_ID_MIKU,
+            texture_id: TEXTURE_ID_MIKU_WAVE,
             source: src,
             destination,
         });
