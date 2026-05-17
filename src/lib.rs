@@ -18,6 +18,7 @@ use crate::scene::Scene;
 use crate::scene::game_over::GameOverScene;
 use crate::scene::level::LevelScene;
 use crate::scene::loading::TestScene;
+use crate::scene::shutting_down::ShuttingDownScene;
 
 extern crate sdl3;
 
@@ -132,5 +133,7 @@ pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
     game.scene = Some(Box::new(TestScene::default()));
     game.scene = Some(Box::new(LevelScene::default()));
     game.scene = Some(Box::new(GameOverScene::default()));
+    game.scene = Some(Box::new(ShuttingDownScene::default()));
+
     event_loop.run(game, &mut game_context);
 }

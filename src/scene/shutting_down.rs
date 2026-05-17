@@ -43,9 +43,13 @@ impl Scene for ShuttingDownScene {
         };
         asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_MIKU);
     }
-    fn update(&mut self, ticks: u32, _game_context: &mut GameContext) {
+    fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
         self.miku.advance(ticks);
         self.countdown = advance_ready_state(self.countdown, ticks);
+        let ReadyState::Ready = self.countdown else {
+            return;
+        };
+        game_context.shutdown_flag = true;
     }
     fn draw(&mut self, game_context: &mut GameContext) {
         let layout = ShuttingDownScene::layout(game_context);

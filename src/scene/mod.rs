@@ -3,6 +3,7 @@ use crate::game::GameContext;
 pub mod game_over;
 pub mod level;
 pub mod loading;
+pub mod shutting_down;
 
 pub trait Scene {
     fn init(&mut self, game_context: &mut GameContext);
