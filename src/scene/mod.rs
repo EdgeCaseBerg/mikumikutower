@@ -4,6 +4,7 @@ pub mod game_over;
 pub mod level;
 pub mod loading;
 pub mod shutting_down;
+pub mod title_screen;
 
 pub trait Scene {
     fn init(&mut self, game_context: &mut GameContext);

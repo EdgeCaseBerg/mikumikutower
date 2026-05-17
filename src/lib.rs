@@ -15,10 +15,7 @@ use crate::backend::init_backend;
 use crate::game::Game;
 use crate::game_options::GameOptions;
 use crate::scene::Scene;
-use crate::scene::game_over::GameOverScene;
-use crate::scene::level::LevelScene;
-use crate::scene::loading::TestScene;
-use crate::scene::shutting_down::ShuttingDownScene;
+use crate::scene::title_screen::TitleScene;
 
 extern crate sdl3;
 
@@ -130,10 +127,6 @@ pub fn hello_sdl(game_options: &GameOptions, game: &mut Game) {
     game_context.renderer = Some(renderer);
     let asset_loader = event_loop.create_asset_loader(game_options);
     game_context.asset_loader = Some(asset_loader);
-    game.scene = Some(Box::new(TestScene::default()));
-    game.scene = Some(Box::new(LevelScene::default()));
-    game.scene = Some(Box::new(GameOverScene::default()));
-    game.scene = Some(Box::new(ShuttingDownScene::default()));
-
+    game.scene = Some(Box::new(TitleScene::default()));
     event_loop.run(game, &mut game_context);
 }

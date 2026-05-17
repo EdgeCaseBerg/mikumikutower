@@ -1,4 +1,3 @@
-use crate::TestScene;
 use crate::asset_loader::AssetLoader;
 use crate::renderer::Color;
 use crate::renderer::Renderer;
