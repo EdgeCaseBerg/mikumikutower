@@ -229,7 +229,7 @@ pub const fn sprite_info_title() -> SpriteInfo {
         height: 270,
         frames: 1,
         current_frame: 0,
-        framerate_per_second: 30,
+        framerate_per_second: 60,
         delta: 0,
     }
 }
