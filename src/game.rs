@@ -60,6 +60,7 @@ pub struct GameContext {
     pub screen_size: (u32, u32),
     pub next_scene: Option<Box<dyn Scene>>,
     pub asset_loader: Option<Box<dyn AssetLoader>>,
+    pub shutdown_flag: bool,
 }
 
 impl Default for GameContext {
@@ -70,6 +71,7 @@ impl Default for GameContext {
             screen_size: (1280, 720),
             next_scene: None,
             asset_loader: None,
+            shutdown_flag: false,
         }
     }
 }

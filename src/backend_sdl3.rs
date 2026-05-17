@@ -210,6 +210,9 @@ impl BackendEventLoop for EventLoopSDL3 {
                 game.reset_for_next_scene();
             }
             game.draw(game_context);
+            if game_context.shutdown_flag {
+                break;
+            }
         }
     }
 
