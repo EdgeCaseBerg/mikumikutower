@@ -69,7 +69,6 @@ impl Button {
             return;
         };
         let layout = self.relative_layout(parent_layout);
-        let mut col = 2;
         let src = self.bg.get_rect();
         let anchor = layout.cell_rect(0, 0);
         renderer.send_command(RenderCommand::DrawRect {
@@ -88,7 +87,7 @@ impl Button {
         }
 
         let glyphs = get_rects_for_str(&self.text);
-        let (cx, cy) = anchor.center();
+        let (_cx, cy) = anchor.center();
         for (c, src) in glyphs.iter().enumerate() {
             // leave room for a glpyh on either side
             let glyph_display_width = anchor.width / (glyphs.len() as isize + 2);

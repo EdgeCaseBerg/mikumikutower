@@ -133,7 +133,7 @@ impl Backend for BackendSDL3 {
             .expect("failed to build window");
 
         let canvas = window.into_canvas();
-        let mut textures = SDL3Textures::from(canvas.texture_creator());
+        let textures = SDL3Textures::from(canvas.texture_creator());
 
         // If we end up having some custom form of cursor for each scene then we can do this
         // self.sdl.mouse().show_cursor(false);
@@ -175,8 +175,6 @@ impl BackendEventLoop for EventLoopSDL3 {
                         mousestate,
                         x,
                         y,
-                        xrel,
-                        yrel,
                         ..
                     } => {
                         game_context.mouse_context.update(

@@ -450,7 +450,6 @@ impl TopBar {
         let mut x_offset = 0;
         let font_cells = rects.into_iter();
         let start = layout.cell_rect(0, 1);
-        let (tile_cx, tile_cy) = start.center();
         for (c, src) in font_cells.enumerate() {
             let cell = center_font_in_tile(start, src, c as isize);
             x_offset = cell.x + cell.width;
@@ -466,7 +465,6 @@ impl TopBar {
             .expect("todo remove this");
         let rects = get_rects_for_str(&format!("Money ${}", self.money));
         let font_cells = rects.into_iter();
-        let (tile_cx, tile_cy) = start.center();
         for (c, src) in font_cells.enumerate() {
             let cell = center_font_in_tile(start, src, c as isize);
             x_offset = cell.x + cell.width;
@@ -482,7 +480,6 @@ impl TopBar {
             .expect("todo remove this 2");
         let rects = get_rects_for_str(&format!("Turret Select:"));
         let font_cells = rects.into_iter();
-        let (tile_cx, tile_cy) = start.center();
         for (c, src) in font_cells.enumerate() {
             let cell = center_font_in_tile(start, src, c as isize);
             x_offset = cell.x + cell.width;
@@ -497,11 +494,11 @@ impl TopBar {
         // This is a one time shift and unpure state modification within the draw because
         // tower positioning needs to align with the above text, but also needs to be accurate
         // for hover detection and such.
-        let (r, c, start) = layout
+        let (_r, c, _start) = layout
             .cell_for_mouse(Some(((tower_offset) as f32, (start.y + 1) as f32)))
             .expect("todo remove this 2");
         if c > self.miku_tower.position.x as usize {
-            for (idx, tower) in vec![
+            for (_idx, tower) in vec![
                 &mut self.miku_tower,
                 &mut self.rin_tower,
                 &mut self.luka_tower,
@@ -528,7 +525,7 @@ impl TopBar {
         };
 
         // If there's an on hover going on, display turrent information at the mouse:
-        let Some((r, c, rect)) = layout.cell_for_mouse(game_context.mouse_context.position) else {
+        let Some((r, c, _rect)) = layout.cell_for_mouse(game_context.mouse_context.position) else {
             return;
         };
         let anchor = layout.cell_rect(r + 1, c);
@@ -539,7 +536,7 @@ impl TopBar {
             columns: 1,
             cell_gap: 4,
         };
-        for (r, c, mut cell) in popup_layout.iter_cells() {
+        for (r, _c, mut cell) in popup_layout.iter_cells() {
             let src = self.bg.get_rect();
             renderer.send_command(RenderCommand::DrawRect {
                 texture_id: TEXTURE_ID_LEEKSHEET,
@@ -554,10 +551,9 @@ impl TopBar {
                 _ => get_rects_for_str(&format!("...")),
             };
             let font_cells = glyphs.into_iter();
-            let (tile_cx, tile_cy) = cell.center();
             cell.x = cell.x - cell.width / 4;
             for (c, src) in font_cells.enumerate() {
-                let mut cell = center_font_in_tile(cell, src, c as isize);
+                let cell = center_font_in_tile(cell, src, c as isize);
                 renderer.send_command(RenderCommand::DrawRect {
                     texture_id: TEXTURE_ID_FONTSHEET,
                     source: src,
@@ -829,7 +825,7 @@ impl Scene for LevelScene {
             columns: 32,
             cell_gap: 0,
         };
-        for (r, c, cell) in layout.iter_cells() {
+        for (_r, _c, cell) in layout.iter_cells() {
             let src = self.grass.get_rect();
             renderer.send_command(RenderCommand::DrawRect {
                 texture_id: TEXTURE_ID_LEEKSHEET,
