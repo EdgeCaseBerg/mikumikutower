@@ -12,6 +12,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::rc::Rc;
 
+use sdl3::AudioSubsystem;
 use sdl3::EventPump;
 use sdl3::Sdl;
 use sdl3::VideoSubsystem;
@@ -38,6 +39,7 @@ pub struct SDL3Context {
     textures: SDL3Textures,
     window_canvas: WindowCanvas,
     video: VideoSubsystem,
+    audio: AudioSubsystem,
 }
 
 pub struct SDL3Textures {
@@ -119,6 +121,7 @@ impl Backend for BackendSDL3 {
         let event_pump = self.sdl.event_pump().unwrap();
 
         let video_subsystem = self.sdl.video().expect("failed to get video context");
+        let audio_subsystem = self.sdl.audio().expect("failed to get audio context");
 
         // Side note, window to borderless and all that would need to re-create window and derived canvases
         let window = video_subsystem
@@ -144,6 +147,7 @@ impl Backend for BackendSDL3 {
                 video: video_subsystem,
                 window_canvas: canvas,
                 textures,
+                audio: audio_subsystem,
             })),
         };
         Box::new(e)
