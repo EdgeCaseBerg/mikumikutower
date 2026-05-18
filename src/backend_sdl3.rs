@@ -166,6 +166,41 @@ impl BackendEventLoop for EventLoopSDL3 {
             scene.init(game_context);
         }
 
+        let ctx = self.context.clone();
+        {
+            eprint!("{}", ctx.borrow_mut().audio.current_audio_driver());
+        }
+        let default_playback_device = ctx.borrow_mut().audio.default_playback_device();
+        let wavspec = sdl3::audio::AudioSpecWAV::load_wav(
+            get_current_directory()
+                .expect("no base")
+                .join("assets")
+                .join("audio")
+                .join("blipSelect.wav"),
+        )
+        .unwrap();
+        let spec = sdl3::audio::AudioSpec::new(
+            Some(wavspec.freq),
+            Some(wavspec.channels.into()),
+            Some(wavspec.format),
+        );
+        let audio_stream_owner = default_playback_device
+            .open_device_stream(Some(&spec))
+            .unwrap();
+        let _ = audio_stream_owner.put_data(wavspec.buffer());
+        let foo = audio_stream_owner.resume().unwrap();
+        eprintln!(
+            "{:?}",
+            (
+                foo,
+                audio_stream_owner.get_format(),
+                audio_stream_owner.device_name(),
+                audio_stream_owner.get_gain(),
+                audio_stream_owner.available_bytes(),
+                audio_stream_owner.queued_bytes()
+            )
+        );
+
         'running: loop {
             // TODO: merge events into state tracking system that doesn't exist yet
             for event in self.event_pump.poll_iter() {
@@ -176,10 +211,7 @@ impl BackendEventLoop for EventLoopSDL3 {
                         ..
                     } => break 'running,
                     Event::MouseMotion {
-                        mousestate,
-                        x,
-                        y,
-                        ..
+                        mousestate, x, y, ..
                     } => {
                         game_context.mouse_context.update(
                             mousestate.left(),
@@ -190,6 +222,7 @@ impl BackendEventLoop for EventLoopSDL3 {
                     Event::MouseButtonDown {
                         mouse_btn, x, y, ..
                     } => {
+                        audio_stream_owner.put_data(wavspec.buffer());
                         game_context.mouse_context.update(
                             mouse_btn == MouseButton::Left,
                             mouse_btn == MouseButton::Right,
