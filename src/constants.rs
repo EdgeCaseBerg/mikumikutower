@@ -1,15 +1,18 @@
 use crate::SpriteInfo;
 use std::path::PathBuf;
 
-pub const TEXTURE_ID_MIKU: usize = 0;
-pub const TEXTURE_ID_PORTRAIT: usize = 1;
-pub const TEXTURE_ID_LEEKSHEET: usize = 2;
-pub const TEXTURE_ID_FONTSHEET: usize = 3;
-pub const TEXTURE_ID_GAMEOVER: usize = 4;
-pub const TEXTURE_ID_MIKU_WAVE: usize = 5;
-pub const TEXTURE_ID_TITLE_BG: usize = 6;
+#[derive(PartialEq, Copy, Debug, Clone, Hash, Eq)]
+pub struct TextureId(pub usize);
 
-pub fn id_to_relative_path(id: usize) -> PathBuf {
+pub const TEXTURE_ID_MIKU: TextureId = TextureId(0);
+pub const TEXTURE_ID_PORTRAIT: TextureId = TextureId(1);
+pub const TEXTURE_ID_LEEKSHEET: TextureId = TextureId(2);
+pub const TEXTURE_ID_FONTSHEET: TextureId = TextureId(3);
+pub const TEXTURE_ID_GAMEOVER: TextureId = TextureId(4);
+pub const TEXTURE_ID_MIKU_WAVE: TextureId = TextureId(5);
+pub const TEXTURE_ID_TITLE_BG: TextureId = TextureId(6);
+
+pub fn id_to_relative_path(id: TextureId) -> PathBuf {
     match id {
         TEXTURE_ID_LEEKSHEET => PathBuf::new().join("made-by-me").join("leek-bg1-bg2.png"),
         TEXTURE_ID_GAMEOVER => PathBuf::new().join("made-by-me").join("GameOver.png"),

@@ -2,14 +2,14 @@ use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{
-    TEXTURE_ID_MIKU, TEXTURE_ID_PORTRAIT, sprite_info_miku, sprite_info_portrait,
+    TEXTURE_ID_MIKU, TEXTURE_ID_PORTRAIT, TextureId, sprite_info_miku, sprite_info_portrait,
 };
 use crate::game::GameContext;
 use crate::renderer::RenderCommand;
 
 pub struct TestScene {
     // TODO: probably move sprite info around or something... but for now, test scene!
-    sprites: Vec<(usize, SpriteInfo)>,
+    sprites: Vec<(TextureId, SpriteInfo)>,
 }
 
 impl Default for TestScene {

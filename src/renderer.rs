@@ -1,4 +1,5 @@
 use crate::Rect;
+use crate::constants::TextureId;
 
 // Colors are defined in sRGB within 0.0 - 1.0
 // While SDL provides one of these, for future proofing against playing with other renderers, define our own.
@@ -43,7 +44,7 @@ pub trait Renderer {
 
 pub enum RenderCommand {
     DrawRect {
-        texture_id: usize,
+        texture_id: TextureId,
         source: Rect,
         destination: Rect,
     },

@@ -43,7 +43,7 @@ pub struct SDL3Context {
 }
 
 pub struct SDL3Textures {
-    texture_by_id: HashMap<usize, SDL3Texture>,
+    texture_by_id: HashMap<TextureId, SDL3Texture>,
     // ORDER OF STRUCT IS IMPORTANT BECAUSE OF DROP ORDER
     // WE DROP THE TEXTURES PRIOR TO THE CREATOR GOING AWAY
     texture_creator: TextureCreator<WindowContext>,
@@ -57,11 +57,11 @@ impl SDL3Textures {
         }
     }
 
-    fn get_texture(&self, texture_id: usize) -> Option<&SDL3Texture> {
+    fn get_texture(&self, texture_id: TextureId) -> Option<&SDL3Texture> {
         self.texture_by_id.get(&texture_id)
     }
 
-    fn load(&mut self, id: usize, path: PathBuf) {
+    fn load(&mut self, id: TextureId, path: PathBuf) {
         let tex = self.texture_creator.load_texture(path).unwrap();
         let tex = make_static(tex);
         self.texture_by_id.insert(id, tex);
@@ -85,7 +85,7 @@ impl AssetLoaderSDL3 {
 }
 
 impl AssetLoader for AssetLoaderSDL3 {
-    fn ensure_texture_spritesheet_loaded(&mut self, id: usize) {
+    fn ensure_texture_spritesheet_loaded(&mut self, id: TextureId) {
         let ctx = &mut *self.context.borrow_mut();
         if !ctx.textures.get_texture(id).is_none() {
             return;
@@ -289,7 +289,7 @@ impl RendererSDL3 {
                         ctx.window_canvas
                             .copy(texture, src, dst)
                             .unwrap_or_else(|_| {
-                                let _ = &format!("failed to draw texture {}", texture_id);
+                                let _ = &format!("failed to draw texture {}", texture_id.0);
                             });
                     }
                 }
