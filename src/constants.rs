@@ -44,6 +44,12 @@ pub fn sfx_id_to_relative_path(id: SfxId) -> PathBuf {
 #[derive(PartialEq, Copy, Debug, Clone, Hash, Eq)]
 pub struct MusicId(pub usize);
 
+pub fn music_id_to_relative_path(id: MusicId) -> PathBuf {
+    match id {
+        _ => PathBuf::new(), // could panic or could maybe make a default sound guy
+    }
+}
+
 pub const fn sprite_info_leek() -> SpriteInfo {
     SpriteInfo {
         start_x: 0,
