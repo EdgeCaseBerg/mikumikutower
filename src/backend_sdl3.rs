@@ -1,21 +1,29 @@
 use crate::Rect;
 use crate::asset_loader::AssetLoader;
+use crate::audio::Audio;
 use crate::backend::*;
 use crate::constants::*;
+use crate::constants::{MusicId, SfxId};
 use crate::game::Game;
 use crate::game::GameContext;
 use crate::game_options::GameOptions;
 use crate::renderer::{Color, RenderCommand, Renderer};
 
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::rc::Rc;
+use std::time::Duration;
+use std::time::Instant;
 
 use sdl3::AudioSubsystem;
 use sdl3::EventPump;
 use sdl3::Sdl;
 use sdl3::VideoSubsystem;
+use sdl3::audio::AudioFormat;
+use sdl3::audio::AudioSpec;
+use sdl3::audio::AudioSpecWAV;
+use sdl3::audio::AudioStreamOwner;
 use sdl3::event::{Event, WindowEvent};
 use sdl3::filesystem::get_current_directory;
 use sdl3::image::LoadTexture;
@@ -40,6 +48,211 @@ pub struct SDL3Context {
     window_canvas: WindowCanvas,
     video: VideoSubsystem,
     audio: AudioSubsystem,
+}
+
+struct SoundData {
+    spec: AudioSpecWAV,
+    duration: Duration,
+}
+
+struct Bucket {
+    spec: Spec,
+    streams: Vec<SfxStream>,
+}
+
+struct SfxStream {
+    stream: AudioStreamOwner,
+    free_at: Option<Instant>,
+}
+
+// This hack brought to you by AudioSpec not implementing Hash.
+#[derive(Hash, Eq, PartialEq, Copy, Clone, Debug)]
+struct Spec {
+    freq: i32,
+    channels: i32,
+    format: sdl3::audio::AudioFormat,
+}
+
+struct SDL3Sounds {
+    sound_by_id: HashMap<SfxId, SoundData>,
+    music_by_id: HashMap<MusicId, SoundData>,
+    buckets: Vec<Bucket>,
+    poolsize: usize,
+    base_path: PathBuf,
+    context: Rc<RefCell<SDL3Context>>,
+}
+
+fn to_hashable_spec(a: &AudioSpecWAV) -> Spec {
+    Spec {
+        freq: a.freq,
+        channels: a.channels.into(),
+        format: a.format,
+    }
+}
+
+fn spec_duration(spec: &AudioSpecWAV) -> Duration {
+    let bytes_per_sample = match spec.format {
+        AudioFormat::U8 | AudioFormat::S8 => 1,
+        AudioFormat::S16LE | AudioFormat::S16BE => 2,
+        AudioFormat::S32LE | AudioFormat::S32BE | AudioFormat::F32LE | AudioFormat::F32BE => 4,
+        _ => 2,
+    };
+    let total_samples = spec.buffer().len() / (bytes_per_sample * spec.channels as usize);
+    let seconds = (total_samples as f64) / spec.freq as f64;
+    Duration::from_secs_f64(seconds)
+}
+
+impl SDL3Sounds {
+    fn new(context: Rc<RefCell<SDL3Context>>, game_options: &GameOptions) -> Self {
+        let buckets = vec![];
+        let base_path = get_current_directory()
+            .expect("cant get base path for audio player")
+            .join(game_options.assets_path.clone());
+
+        Self {
+            buckets,
+            sound_by_id: HashMap::new(),
+            music_by_id: HashMap::new(),
+            poolsize: game_options.audio_pool_size,
+            base_path,
+            context,
+        }
+    }
+    // TODO: explain in blog about how annoying it is that I cant reuse it
+    fn get_sound_buffer(&self, sound_id: SfxId) -> Option<&SoundData> {
+        self.sound_by_id.get(&sound_id)
+    }
+}
+
+impl SfxStream {
+    fn is_free(&self, now: Instant) -> bool {
+        self.free_at.map_or(true, |t| now >= t)
+    }
+
+    fn claim(&mut self, entry: &SoundData, now: Instant) {
+        let _ = self.stream.clear();
+        let _ = self.stream.put_data(entry.spec.buffer());
+        let _ = self.stream.resume();
+        self.free_at = Some(now + entry.duration);
+    }
+}
+
+impl Audio for SDL3Sounds {
+    fn play_sfx(&mut self, id: SfxId) {
+        // TODO should we take this instant in from above?
+        let now = Instant::now();
+        let Some(sound_data) = self.sound_by_id.get(&id) else {
+            return;
+        };
+        // find the bucket
+        let bucket_key = to_hashable_spec(&sound_data.spec);
+        let Some(bucket) = self.buckets.iter_mut().find(|b| b.spec == bucket_key) else {
+            eprintln!("No bucket found for spec {:?}", bucket_key);
+            return;
+        };
+        let stream = if let Some(stream) = bucket.streams.iter_mut().find(|s| s.is_free(now)) {
+            stream
+        } else {
+            // All busy — steal the one that will free soonest
+            bucket.streams.iter_mut().min_by_key(|s| s.free_at).unwrap()
+        };
+        stream.claim(&sound_data, now);
+    }
+    fn load_sfx(&mut self, sound_id: SfxId) {
+        if !self.sound_by_id.get(&sound_id).is_none() {
+            return;
+        }
+
+        // TODO I suppose make things turn results and ? it all.
+        let path = self.base_path.join(sfx_id_to_relative_path(sound_id));
+        let spec = AudioSpecWAV::load_wav(path).expect("could not load spec from path");
+        let data = SoundData {
+            duration: spec_duration(&spec),
+            spec,
+        };
+        self.sound_by_id.insert(sound_id, data);
+    }
+    // beyond the music id here,
+    fn play_music(&mut self, id: MusicId) {
+        let now = Instant::now();
+        let Some(sound_data) = self.music_by_id.get(&id) else {
+            return;
+        };
+        // find the bucket
+        let bucket_key = to_hashable_spec(&sound_data.spec);
+        let Some(bucket) = self.buckets.iter_mut().find(|b| b.spec == bucket_key) else {
+            eprintln!("No bucket found for spec {:?}", bucket_key);
+            return;
+        };
+        let stream = if let Some(stream) = bucket.streams.iter_mut().find(|s| s.is_free(now)) {
+            stream
+        } else {
+            // All busy — steal the one that will free soonest
+            bucket.streams.iter_mut().min_by_key(|s| s.free_at).unwrap()
+        };
+        stream.claim(&sound_data, now);
+    }
+    fn load_music(&mut self, id: MusicId) {
+        if !self.music_by_id.get(&id).is_none() {
+            return;
+        }
+
+        // TODO I suppose make things turn results and ? it all.
+        let path = self.base_path.join(music_id_to_relative_path(id));
+        let spec = AudioSpecWAV::load_wav(path).expect("could not load spec from path");
+        let data = SoundData {
+            duration: spec_duration(&spec),
+            spec,
+        };
+        self.music_by_id.insert(id, data);
+    }
+
+    fn prepare(&mut self) {
+        let mut specs_to_prepare: HashSet<Spec> = self
+            .sound_by_id
+            .values()
+            .map(|v| to_hashable_spec(&v.spec))
+            .collect();
+        for spec in self.music_by_id.values().map(|v| to_hashable_spec(&v.spec)) {
+            specs_to_prepare.insert(spec);
+        }
+
+        // Clean out anything we DONT need anymore:
+        let mut already_exist = HashSet::new();
+        self.buckets.retain_mut(|bucket| {
+            let exists = specs_to_prepare.contains(&bucket.spec);
+            if exists {
+                already_exist.insert(bucket.spec.clone());
+            }
+            exists
+        });
+
+        let ctx = &mut *self.context.borrow_mut();
+        for spec_needs_bucket in specs_to_prepare.difference(&already_exist) {
+            let mut streams = Vec::with_capacity(self.poolsize);
+            for _ in 0..self.poolsize {
+                let device = ctx.audio.default_playback_device();
+                let stream = SfxStream {
+                    stream: device
+                        .open_device_stream(
+                            Some(AudioSpec {
+                                freq: Some(spec_needs_bucket.freq),
+                                channels: Some(spec_needs_bucket.channels),
+                                format: Some(spec_needs_bucket.format),
+                            })
+                            .as_ref(),
+                        )
+                        .expect("could not open logical device for spec"),
+                    free_at: None,
+                };
+                streams.push(stream);
+            }
+            self.buckets.push(Bucket {
+                spec: *spec_needs_bucket,
+                streams,
+            })
+        }
+    }
 }
 
 pub struct SDL3Textures {
@@ -166,40 +379,11 @@ impl BackendEventLoop for EventLoopSDL3 {
             scene.init(game_context);
         }
 
-        let ctx = self.context.clone();
-        {
-            eprint!("{}", ctx.borrow_mut().audio.current_audio_driver());
+        // initialize the audio pool if the scene has queued things up
+        let audio = game_context.audio.as_mut();
+        if let Some(audio) = audio {
+            audio.prepare();
         }
-        let default_playback_device = ctx.borrow_mut().audio.default_playback_device();
-        let wavspec = sdl3::audio::AudioSpecWAV::load_wav(
-            get_current_directory()
-                .expect("no base")
-                .join("assets")
-                .join("audio")
-                .join("blipSelect.wav"),
-        )
-        .unwrap();
-        let spec = sdl3::audio::AudioSpec::new(
-            Some(wavspec.freq),
-            Some(wavspec.channels.into()),
-            Some(wavspec.format),
-        );
-        let audio_stream_owner = default_playback_device
-            .open_device_stream(Some(&spec))
-            .unwrap();
-        let _ = audio_stream_owner.put_data(wavspec.buffer());
-        let foo = audio_stream_owner.resume().unwrap();
-        eprintln!(
-            "{:?}",
-            (
-                foo,
-                audio_stream_owner.get_format(),
-                audio_stream_owner.device_name(),
-                audio_stream_owner.get_gain(),
-                audio_stream_owner.available_bytes(),
-                audio_stream_owner.queued_bytes()
-            )
-        );
 
         'running: loop {
             // TODO: merge events into state tracking system that doesn't exist yet
@@ -222,7 +406,6 @@ impl BackendEventLoop for EventLoopSDL3 {
                     Event::MouseButtonDown {
                         mouse_btn, x, y, ..
                     } => {
-                        audio_stream_owner.put_data(wavspec.buffer());
                         game_context.mouse_context.update(
                             mouse_btn == MouseButton::Left,
                             mouse_btn == MouseButton::Right,
@@ -243,6 +426,10 @@ impl BackendEventLoop for EventLoopSDL3 {
                 next_scene.init(game_context);
                 game.scene = Some(next_scene);
                 game.reset_for_next_scene();
+                let audio = game_context.audio.as_mut();
+                if let Some(audio) = audio {
+                    audio.prepare();
+                }
             }
             game.draw(game_context);
             if game_context.shutdown_flag {
@@ -262,6 +449,11 @@ impl BackendEventLoop for EventLoopSDL3 {
     fn create_asset_loader(&self, game_options: &GameOptions) -> Box<dyn AssetLoader> {
         let a = AssetLoaderSDL3::new(self.context.clone(), game_options);
         Box::new(a)
+    }
+
+    fn create_audio(&self, game_options: &GameOptions) -> Box<dyn Audio> {
+        let s = SDL3Sounds::new(self.context.clone(), game_options);
+        Box::new(s)
     }
 }
 

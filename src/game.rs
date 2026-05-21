@@ -1,4 +1,5 @@
 use crate::asset_loader::AssetLoader;
+use crate::audio::Audio;
 use crate::renderer::Color;
 use crate::renderer::Renderer;
 use crate::scene::Scene;
@@ -60,6 +61,7 @@ pub struct GameContext {
     pub screen_size: (u32, u32),
     pub next_scene: Option<Box<dyn Scene>>,
     pub asset_loader: Option<Box<dyn AssetLoader>>,
+    pub audio: Option<Box<dyn Audio>>,
     pub shutdown_flag: bool,
 }
 
@@ -71,6 +73,7 @@ impl Default for GameContext {
             screen_size: (1280, 720),
             next_scene: None,
             asset_loader: None,
+            audio: None,
             shutdown_flag: false,
         }
     }

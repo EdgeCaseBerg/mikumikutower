@@ -2,8 +2,8 @@ use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{
-    TEXTURE_ID_FONTSHEET, TEXTURE_ID_LEEKSHEET, TEXTURE_ID_TITLE_BG, sprite_info_highlight,
-    sprite_info_title, sprite_info_topbar_bg,
+    SFX_ID_BLIP, TEXTURE_ID_FONTSHEET, TEXTURE_ID_LEEKSHEET, TEXTURE_ID_TITLE_BG,
+    sprite_info_highlight, sprite_info_title, sprite_info_topbar_bg,
 };
 use crate::font::get_rects_for_str;
 use crate::game::GameContext;
@@ -164,6 +164,12 @@ impl Scene for TitleScene {
         asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_TITLE_BG);
         asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_LEEKSHEET);
         asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_FONTSHEET);
+
+        let Some(ref mut audio) = game_context.audio else {
+            return;
+        };
+
+        audio.load_sfx(SFX_ID_BLIP);
     }
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
         let layout = TitleScene::layout(&game_context);
@@ -171,6 +177,9 @@ impl Scene for TitleScene {
         self.start_game_btn.update(ticks, game_context, &layout);
 
         if self.start_game_btn.clicked && game_context.next_scene.is_none() {
+            game_context.audio.as_mut().map(|audio| {
+                audio.play_sfx(SFX_ID_BLIP);
+            });
             game_context.queue_level();
             self.start_game_btn.clicked = false;
         }

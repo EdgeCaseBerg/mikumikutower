@@ -1,4 +1,5 @@
 use crate::asset_loader::AssetLoader;
+use crate::audio::Audio;
 use crate::game::Game;
 use crate::game::GameContext;
 use crate::game_options::GameOptions;
@@ -12,6 +13,7 @@ pub trait BackendEventLoop {
     fn run(&mut self, game: &mut Game, game_context: &mut GameContext);
     fn new_renderer(&self, game_options: &GameOptions) -> Box<dyn Renderer>;
     fn create_asset_loader(&self, game_options: &GameOptions) -> Box<dyn AssetLoader>;
+    fn create_audio(&self, game_options: &GameOptions) -> Box<dyn Audio>;
 }
 
 pub fn init_backend(game_options: &GameOptions) -> Box<dyn Backend> {
