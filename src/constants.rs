@@ -34,13 +34,14 @@ pub struct SfxId(pub usize);
 
 pub const SFX_ID_BLIP: SfxId = SfxId(0);
 pub const SFX_ID_MEME: SfxId = SfxId(1);
+pub const SFX_ID_DESELECT: SfxId = SfxId(2);
 
 pub fn sfx_id_to_relative_path(id: SfxId) -> PathBuf {
     let base = PathBuf::new().join("audio");
     match id {
         SFX_ID_BLIP => base.join("blipSelect.wav"),
+        SFX_ID_DESELECT => base.join("blipDeSelect.wav"),
         SFX_ID_MEME => base.join("Hatsune Miku - SEGA.wav"),
-
         _ => PathBuf::new(), // could panic or could maybe make a default sound guy
     }
 }
