@@ -2,13 +2,14 @@ use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{
-    SFX_ID_BLIP, TEXTURE_ID_FONTSHEET, TEXTURE_ID_LEEKSHEET, TEXTURE_ID_TITLE_BG,
-    sprite_info_highlight, sprite_info_title, sprite_info_topbar_bg,
+    MUSIC_ID_PACHEBAL, SFX_ID_BLIP, SFX_ID_MEME, TEXTURE_ID_FONTSHEET, TEXTURE_ID_LEEKSHEET,
+    TEXTURE_ID_TITLE_BG, sprite_info_highlight, sprite_info_title, sprite_info_topbar_bg,
 };
 use crate::font::get_rects_for_str;
 use crate::game::GameContext;
 use crate::grid_layout::GridLayout;
 use crate::renderer::RenderCommand;
+use crate::{ReadyState, advance_ready_state};
 
 //todo: share this I suppose and move it to mod or something
 struct Button {
@@ -114,6 +115,8 @@ pub struct TitleScene {
     bg: SpriteInfo,
     start_game_btn: Button,
     quit_btn: Button,
+    played_intro: ReadyState,
+    play_music: ReadyState,
 }
 
 impl TitleScene {
@@ -151,6 +154,11 @@ impl Default for TitleScene {
                     height: 2,
                 },
             ),
+            played_intro: ReadyState::Ready,
+            play_music: ReadyState::Cooldown {
+                wait_for: 180,
+                ticks_waited: 0,
+            },
         }
     }
 }
@@ -170,11 +178,40 @@ impl Scene for TitleScene {
         };
 
         audio.load_sfx(SFX_ID_BLIP);
+        audio.load_sfx(SFX_ID_MEME);
+        audio.load_music(MUSIC_ID_PACHEBAL);
     }
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
         let layout = TitleScene::layout(&game_context);
         self.quit_btn.update(ticks, game_context, &layout);
         self.start_game_btn.update(ticks, game_context, &layout);
+
+        match self.played_intro {
+            ReadyState::Ready => {
+                self.played_intro = ReadyState::Cooldown {
+                    wait_for: u32::MAX, ticks_waited: 0,
+                };
+                game_context.audio.as_mut().map(|audio| {
+                    audio.play_sfx(SFX_ID_MEME);
+                });
+            }
+            _ => {}
+        }
+
+        match self.play_music {
+            ReadyState::Ready => {
+                game_context.audio.as_mut().map(|audio| {
+                    audio.play_music(MUSIC_ID_PACHEBAL);
+                });
+                self.play_music = ReadyState::Cooldown {
+                    wait_for: 14 * 60, ticks_waited: 0,
+                };
+            }
+            _ => {}
+        }
+
+        self.played_intro = advance_ready_state(self.played_intro, ticks);
+        self.play_music = advance_ready_state(self.play_music, ticks);
 
         if self.start_game_btn.clicked && game_context.next_scene.is_none() {
             game_context.audio.as_mut().map(|audio| {
@@ -185,6 +222,9 @@ impl Scene for TitleScene {
         }
 
         if self.quit_btn.clicked && game_context.next_scene.is_none() {
+            game_context.audio.as_mut().map(|audio| {
+                audio.play_sfx(SFX_ID_BLIP);
+            });
             game_context.shutdown();
             self.quit_btn.clicked = false;
         }
