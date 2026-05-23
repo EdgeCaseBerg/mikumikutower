@@ -2,10 +2,10 @@ use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{
-    TEXTURE_ID_FONTSHEET, TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, sprite_info_energy,
-    sprite_info_grass, sprite_info_highlight, sprite_info_leek, sprite_info_luka_tower,
-    sprite_info_miku, sprite_info_miku_tower, sprite_info_rin_tower, sprite_info_road,
-    sprite_info_teto_walking, sprite_info_topbar_bg,
+    SFX_ID_BLIP, SFX_ID_DESELECT, TEXTURE_ID_FONTSHEET, TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU,
+    sprite_info_energy, sprite_info_grass, sprite_info_highlight, sprite_info_leek,
+    sprite_info_luka_tower, sprite_info_miku, sprite_info_miku_tower, sprite_info_rin_tower,
+    sprite_info_road, sprite_info_teto_walking, sprite_info_topbar_bg,
 };
 use crate::font::{center_font_in_tile, get_rects_for_str};
 use crate::game::GameContext;
@@ -401,6 +401,9 @@ impl TopBar {
                 {
                     self.current_action = Some(PlayerAction::PlaceTower(tower.clone()));
                     game_context.mouse_context.consume_left_click();
+                    game_context.audio.as_mut().map(|audio| {
+                        audio.play_sfx(SFX_ID_BLIP);
+                    });
                     // annoyingly, we cant call self.buy_tower without the borrow checker bitching.
                     // because it can't understand that only the money field will be mutated within that call.
                     self.money = self.money.saturating_sub(tower.cost);
@@ -417,6 +420,9 @@ impl TopBar {
                     self.money = self.money.saturating_add(tower.cost);
                     game_context.mouse_context.consume_right_click();
                     self.current_action = None;
+                    game_context.audio.as_mut().map(|audio| {
+                        audio.play_sfx(SFX_ID_DESELECT);
+                    });
                 }
                 _ => {}
             }
@@ -694,6 +700,9 @@ impl LevelScene {
             tower.position.y = r as isize;
             self.add_tower(tower);
             game_context.mouse_context.consume_left_click();
+            game_context.audio.as_mut().map(|audio| {
+                audio.play_sfx(SFX_ID_BLIP);
+            });
         }
 
         // calling top_bar update should mean we dont need to do this. but doesnt hurt to be sure.
@@ -704,6 +713,9 @@ impl LevelScene {
             };
             self.top_bar.refund_tower(&tower);
             game_context.mouse_context.consume_right_click();
+            game_context.audio.as_mut().map(|audio| {
+                audio.play_sfx(SFX_ID_DESELECT);
+            });
         }
     }
 }
@@ -717,6 +729,13 @@ impl Scene for LevelScene {
         asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_MIKU);
         asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_LEEKSHEET);
         asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_FONTSHEET);
+
+        let Some(ref mut audio) = game_context.audio else {
+            return;
+        };
+
+        audio.load_sfx(SFX_ID_BLIP);
+        audio.load_sfx(SFX_ID_DESELECT);
     }
 
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
