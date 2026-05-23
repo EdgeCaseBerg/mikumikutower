@@ -224,6 +224,9 @@ impl Audio for SDL3Sounds {
             if exists {
                 already_exist.insert(bucket.spec.clone());
             }
+            for SfxStream { stream, .. } in &bucket.streams {
+                stream.pause();
+            }
             exists
         });
 
