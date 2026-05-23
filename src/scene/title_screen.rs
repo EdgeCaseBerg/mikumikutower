@@ -189,7 +189,8 @@ impl Scene for TitleScene {
         match self.played_intro {
             ReadyState::Ready => {
                 self.played_intro = ReadyState::Cooldown {
-                    wait_for: u32::MAX, ticks_waited: 0,
+                    wait_for: u32::MAX,
+                    ticks_waited: 0,
                 };
                 game_context.audio.as_mut().map(|audio| {
                     audio.play_sfx(SFX_ID_MEME);
@@ -204,7 +205,8 @@ impl Scene for TitleScene {
                     audio.play_music(MUSIC_ID_PACHEBAL);
                 });
                 self.play_music = ReadyState::Cooldown {
-                    wait_for: 14 * 60, ticks_waited: 0,
+                    wait_for: 14 * 60,
+                    ticks_waited: 0,
                 };
             }
             _ => {}
