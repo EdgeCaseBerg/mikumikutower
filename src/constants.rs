@@ -33,20 +33,29 @@ pub fn id_to_relative_path(id: TextureId) -> PathBuf {
 pub struct SfxId(pub usize);
 
 pub const SFX_ID_BLIP: SfxId = SfxId(0);
+pub const SFX_ID_MEME: SfxId = SfxId(1);
 
 pub fn sfx_id_to_relative_path(id: SfxId) -> PathBuf {
+    let base = PathBuf::new().join("audio");
     match id {
-        SFX_ID_BLIP => PathBuf::new().join("audio").join("blipSelect.wav"),
+        SFX_ID_BLIP => base.join("blipSelect.wav"),
+        SFX_ID_MEME => base.join("Hatsune Miku - SEGA.wav"),
+
         _ => PathBuf::new(), // could panic or could maybe make a default sound guy
     }
 }
 
 #[derive(PartialEq, Copy, Debug, Clone, Hash, Eq)]
 pub struct MusicId(pub usize);
+pub const MUSIC_ID_PACHEBAL: MusicId = MusicId(0);
 
+// Enable loading arbitrary songs via ids above 1
 pub fn music_id_to_relative_path(id: MusicId) -> PathBuf {
+    let base = PathBuf::new().join("audio");
+    let wavs = PathBuf::new().join("audio").join("cc-vocaloid");
     match id {
-        _ => PathBuf::new(), // could panic or could maybe make a default sound guy
+        MUSIC_ID_PACHEBAL => base.join("Miku Pachebal.wav"),
+        _ => wavs.join(format!("{}.wav", id.0)),
     }
 }
 
