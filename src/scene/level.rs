@@ -2,10 +2,11 @@ use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{
-    SFX_ID_BLIP, SFX_ID_DESELECT, TEXTURE_ID_FONTSHEET, TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU,
-    sprite_info_energy, sprite_info_grass, sprite_info_highlight, sprite_info_leek,
-    sprite_info_luka_tower, sprite_info_miku, sprite_info_miku_tower, sprite_info_rin_tower,
-    sprite_info_road, sprite_info_teto_walking, sprite_info_topbar_bg,
+    SFX_ID_BASE_HIT, SFX_ID_BLIP, SFX_ID_DESELECT, SFX_ID_ENEMY_HIT, TEXTURE_ID_FONTSHEET,
+    TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, sprite_info_energy, sprite_info_grass,
+    sprite_info_highlight, sprite_info_leek, sprite_info_luka_tower, sprite_info_miku,
+    sprite_info_miku_tower, sprite_info_rin_tower, sprite_info_road, sprite_info_teto_walking,
+    sprite_info_topbar_bg,
 };
 use crate::font::{center_font_in_tile, get_rects_for_str};
 use crate::game::GameContext;
@@ -736,6 +737,8 @@ impl Scene for LevelScene {
 
         audio.load_sfx(SFX_ID_BLIP);
         audio.load_sfx(SFX_ID_DESELECT);
+        audio.load_sfx(SFX_ID_BASE_HIT);
+        audio.load_sfx(SFX_ID_ENEMY_HIT);
     }
 
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
@@ -760,11 +763,13 @@ impl Scene for LevelScene {
             tower.update(ticks);
         }
         self.top_bar.update(ticks, game_context, &layout);
+        let mut base_hit = false;
         for enemy in &mut self.enemies {
             enemy.update(ticks);
             enemy.walk(&self.path);
             if let Some(damage) = enemy.attack(&self.path) {
                 self.base.health.damage(damage);
+                base_hit = true;
                 if self.base.health.is_dead() && game_context.next_scene.is_none() {
                     game_context.queue_game_over();
                 }
@@ -789,6 +794,13 @@ impl Scene for LevelScene {
             }
         }
 
+        if base_hit {
+            game_context.audio.as_mut().map(|audio| {
+                audio.play_sfx(SFX_ID_BASE_HIT);
+            });
+        }
+
+        let mut enemy_hit = false;
         self.projectiles.retain_mut(|projectile| {
             projectile.update(ticks);
             if !projectile.has_arrived() {
@@ -814,6 +826,8 @@ impl Scene for LevelScene {
                 if enemy.position.y as usize != r || enemy.position.x as usize != c {
                     return true;
                 }
+                enemy_hit = true;
+
                 enemy.health.damage(projectile.damage);
                 if enemy.health.current != 0 {
                     return true;
@@ -825,6 +839,11 @@ impl Scene for LevelScene {
             });
             false
         });
+        if enemy_hit {
+            game_context.audio.as_mut().map(|audio| {
+                audio.play_sfx(SFX_ID_ENEMY_HIT);
+            });
+        }
         self.check_action(&layout, game_context);
 
         if self.enemies.len() == 0 {
