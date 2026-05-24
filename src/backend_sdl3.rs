@@ -73,12 +73,19 @@ struct Spec {
     format: sdl3::audio::AudioFormat,
 }
 
+enum MusicTrack {
+    A,
+    B,
+}
+
 struct SDL3Sounds {
     sound_by_id: HashMap<SfxId, SoundData>,
     music_by_id: HashMap<MusicId, SoundData>,
     buckets: Vec<Bucket>,
     poolsize: usize,
     base_path: PathBuf,
+    current_track: MusicTrack,
+    music_streams: [Option<SfxStream>; 2],
     context: Rc<RefCell<SDL3Context>>,
 }
 
@@ -115,6 +122,8 @@ impl SDL3Sounds {
             music_by_id: HashMap::new(),
             poolsize: game_options.audio_pool_size,
             base_path,
+            current_track: MusicTrack::A,
+            music_streams: [None, None],
             context,
         }
     }
@@ -172,31 +181,51 @@ impl Audio for SDL3Sounds {
         };
         self.sound_by_id.insert(sound_id, data);
     }
-    // beyond the music id here,
     fn play_music(&mut self, id: MusicId) {
-        let now = Instant::now();
         let Some(sound_data) = self.music_by_id.get(&id) else {
             return;
         };
-        // find the bucket
-        let bucket_key = to_hashable_spec(&sound_data.spec);
-        let Some(bucket) = self.buckets.iter_mut().find(|b| b.spec == bucket_key) else {
-            eprintln!("No bucket found for spec {:?}", bucket_key);
-            return;
+        let (play_index, pause_index) = match self.current_track {
+            MusicTrack::A => (0,1),
+            MusicTrack::B => (1,0),
         };
-        let stream = if let Some(stream) = bucket.streams.iter_mut().find(|s| s.is_free(now)) {
+        let now = Instant::now();
+        self.music_streams[play_index] = Some({
+            let ctx = &mut *self.context.borrow_mut();
+            let device = ctx.audio.default_playback_device();
+            let mut stream = SfxStream {
+                stream: device
+                    .open_device_stream(
+                        Some(AudioSpec {
+                            freq: Some(sound_data.spec.freq),
+                            channels: Some(sound_data.spec.channels.into()),
+                            format: Some(sound_data.spec.format),
+                        })
+                        .as_ref(),
+                    )
+                    .expect("could not open logical device for spec"),
+                free_at: Some(now),
+            };
+            stream.claim(&sound_data, now);
             stream
-        } else {
-            // All busy — steal the one that will free soonest
-            bucket.streams.iter_mut().min_by_key(|s| s.free_at).unwrap()
+        });
+            
+        match &mut self.music_streams[pause_index] {
+            None => {},
+            Some(SfxStream {stream, ..}) => {
+                let _ = stream.pause();
+            }
+        }
+        self.current_track = match self.current_track {
+            MusicTrack::A => MusicTrack::B,
+            MusicTrack::B => MusicTrack::A,
         };
-        stream.claim(&sound_data, now);
     }
+
     fn load_music(&mut self, id: MusicId) {
         if !self.music_by_id.get(&id).is_none() {
             return;
         }
-
         // TODO I suppose make things turn results and ? it all.
         let path = self.base_path.join(music_id_to_relative_path(id));
         let spec = AudioSpecWAV::load_wav(path).expect("could not load spec from path");
