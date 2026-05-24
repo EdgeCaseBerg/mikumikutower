@@ -34,7 +34,7 @@ impl Enemy {
             sprite_info: sprite_info_teto_walking(),
             ready_state: ReadyState::Ready,
             path_index: 0,
-            speed: 120,
+            speed: 60,
         }
     }
 
