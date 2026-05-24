@@ -2,11 +2,11 @@ use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{
-    SFX_ID_BASE_HIT, SFX_ID_BLIP, SFX_ID_DESELECT, SFX_ID_ENEMY_HIT, TEXTURE_ID_FONTSHEET,
-    TEXTURE_ID_LEEKSHEET, TEXTURE_ID_MIKU, sprite_info_energy, sprite_info_grass,
-    sprite_info_highlight, sprite_info_leek, sprite_info_luka_tower, sprite_info_miku,
-    sprite_info_miku_tower, sprite_info_rin_tower, sprite_info_road, sprite_info_teto_walking,
-    sprite_info_topbar_bg,
+    SFX_ID_BASE_HIT, SFX_ID_BLIP, SFX_ID_DESELECT, SFX_ID_ENEMY_HIT, SFX_ID_TURRET_HEAVY,
+    SFX_ID_TURRET_LIGHT, SFX_ID_TURRET_MEDIUM, SfxId, TEXTURE_ID_FONTSHEET, TEXTURE_ID_LEEKSHEET,
+    TEXTURE_ID_MIKU, sprite_info_energy, sprite_info_grass, sprite_info_highlight,
+    sprite_info_leek, sprite_info_luka_tower, sprite_info_miku, sprite_info_miku_tower,
+    sprite_info_rin_tower, sprite_info_road, sprite_info_teto_walking, sprite_info_topbar_bg,
 };
 use crate::font::{center_font_in_tile, get_rects_for_str};
 use crate::game::GameContext;
@@ -14,7 +14,7 @@ use crate::grid_layout::GridLayout;
 use crate::renderer::RenderCommand;
 use crate::{ReadyState, advance_ready_state};
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Clone)]
 struct Enemy {
@@ -276,6 +276,7 @@ struct Tower {
     cost: u32,
     damage: u8,
     cooldown: u32,
+    sound: SfxId,
 }
 
 impl Tower {
@@ -315,6 +316,7 @@ impl Tower {
             cost: 10,
             damage: 1,
             cooldown: 30,
+            sound: SFX_ID_TURRET_MEDIUM,
         }
     }
 
@@ -324,6 +326,7 @@ impl Tower {
         base.cost = 20;
         base.damage = 5;
         base.cooldown = 30;
+        base.sound = SFX_ID_TURRET_MEDIUM;
         base
     }
 
@@ -333,6 +336,7 @@ impl Tower {
         base.cost = 15;
         base.damage = 3;
         base.cooldown = 15;
+        base.sound = SFX_ID_TURRET_LIGHT;
         base
     }
 
@@ -342,6 +346,7 @@ impl Tower {
         base.cost = 30;
         base.damage = 15;
         base.cooldown = 60;
+        base.sound = SFX_ID_TURRET_HEAVY;
         base
     }
 }
@@ -739,6 +744,9 @@ impl Scene for LevelScene {
         audio.load_sfx(SFX_ID_DESELECT);
         audio.load_sfx(SFX_ID_BASE_HIT);
         audio.load_sfx(SFX_ID_ENEMY_HIT);
+        audio.load_sfx(SFX_ID_TURRET_HEAVY);
+        audio.load_sfx(SFX_ID_TURRET_LIGHT);
+        audio.load_sfx(SFX_ID_TURRET_MEDIUM);
     }
 
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
@@ -764,6 +772,7 @@ impl Scene for LevelScene {
         }
         self.top_bar.update(ticks, game_context, &layout);
         let mut base_hit = false;
+        let mut turret_sounds = HashSet::new();
         for enemy in &mut self.enemies {
             enemy.update(ticks);
             enemy.walk(&self.path);
@@ -789,8 +798,17 @@ impl Scene for LevelScene {
                         self.projectiles
                             .push(tower.projectile(&layout, target.center()));
                         tower.cooldown();
+                        turret_sounds.insert(tower.sound);
                     }
                 }
+            }
+        }
+
+        if turret_sounds.len() > 0 {
+            for sound_id in turret_sounds {
+                game_context.audio.as_mut().map(|audio| {
+                    audio.play_sfx(sound_id);
+                });
             }
         }
 
