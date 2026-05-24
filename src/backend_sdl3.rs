@@ -186,8 +186,8 @@ impl Audio for SDL3Sounds {
             return;
         };
         let (play_index, pause_index) = match self.current_track {
-            MusicTrack::A => (0,1),
-            MusicTrack::B => (1,0),
+            MusicTrack::A => (0, 1),
+            MusicTrack::B => (1, 0),
         };
         let now = Instant::now();
         self.music_streams[play_index] = Some({
@@ -209,10 +209,10 @@ impl Audio for SDL3Sounds {
             stream.claim(&sound_data, now);
             stream
         });
-            
+
         match &mut self.music_streams[pause_index] {
-            None => {},
-            Some(SfxStream {stream, ..}) => {
+            None => {}
+            Some(SfxStream { stream, .. }) => {
                 let _ = stream.pause();
             }
         }
