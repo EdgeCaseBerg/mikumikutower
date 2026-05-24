@@ -37,6 +37,9 @@ pub const SFX_ID_MEME: SfxId = SfxId(1);
 pub const SFX_ID_DESELECT: SfxId = SfxId(2);
 pub const SFX_ID_ENEMY_HIT: SfxId = SfxId(3);
 pub const SFX_ID_BASE_HIT: SfxId = SfxId(4);
+pub const SFX_ID_TURRET_HEAVY : SfxId = SfxId(5);
+pub const SFX_ID_TURRET_LIGHT : SfxId = SfxId(6);
+pub const SFX_ID_TURRET_MEDIUM : SfxId = SfxId(7);
 
 pub fn sfx_id_to_relative_path(id: SfxId) -> PathBuf {
     let base = PathBuf::new().join("audio");
@@ -46,6 +49,9 @@ pub fn sfx_id_to_relative_path(id: SfxId) -> PathBuf {
         SFX_ID_MEME => base.join("Hatsune Miku - SEGA.wav"),
         SFX_ID_ENEMY_HIT => base.join("hitHurt.wav"),
         SFX_ID_BASE_HIT => base.join("hitHurt2.wav"),
+        SFX_ID_TURRET_HEAVY => base.join("/audio/explosion.wav"),
+        SFX_ID_TURRET_LIGHT => base.join("/audio/laserShoot.wav"),
+        SFX_ID_TURRET_MEDIUM => base.join("/audio/laserShoot2.wav"),
         _ => PathBuf::new(), // could panic or could maybe make a default sound guy
     }
 }
