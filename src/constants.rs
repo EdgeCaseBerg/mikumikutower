@@ -59,6 +59,9 @@ pub fn sfx_id_to_relative_path(id: SfxId) -> PathBuf {
 #[derive(PartialEq, Copy, Debug, Clone, Hash, Eq)]
 pub struct MusicId(pub usize);
 pub const MUSIC_ID_PACHEBAL: MusicId = MusicId(0);
+pub const MUSIC_ID_MOON: MusicId = MusicId(1000);
+pub const MUSIC_ID_QUIT: MusicId = MusicId(1001);
+pub const MUSIC_ID_TETO: MusicId = MusicId(1002);
 
 // Enable loading arbitrary songs via ids above 1
 pub fn music_id_to_relative_path(id: MusicId) -> PathBuf {
@@ -66,6 +69,9 @@ pub fn music_id_to_relative_path(id: MusicId) -> PathBuf {
     let wavs = PathBuf::new().join("audio").join("cc-vocaloid");
     match id {
         MUSIC_ID_PACHEBAL => base.join("Miku Pachebal.wav"),
+        MUSIC_ID_MOON => base.join("miku fly to moon.wav"),
+        MUSIC_ID_QUIT => base.join("selectedQuit.wav"),
+        MUSIC_ID_TETO => base.join("tetowins.wav"),
         _ => wavs.join(format!("{}.wav", id.0)),
     }
 }
