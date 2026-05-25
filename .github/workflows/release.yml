@@ -124,12 +124,21 @@ jobs:
           copy target\release\SDL3.dll dist\
           copy target\release\SDL3_image.dll dist\
 
-          xcopy assets dist\assets /E /I /Y
+          if (Test-Path assets) {
+            xcopy assets dist\assets /E /I /Y
+          }
 
-          xcopy data dist\data /E /I /Y || exit /b 0
-          xcopy levels dist\levels /E /I /Y || exit /b 0
-          xcopy shaders dist\shaders /E /I /Y || exit /b 0
-          # Note that if we ever need a directory, xcopy target\release\libSDL3* dist\ /Y /I will be the thing to do.
+          if (Test-Path data) {
+            xcopy data dist\data /E /I /Y
+          }
+
+          if (Test-Path levels) {
+            xcopy levels dist\levels /E /I /Y
+          }
+
+          if (Test-Path shaders) {
+            xcopy shaders dist\shaders /E /I /Y
+          }          
 
       - name: Archive (Linux)
         if: runner.os == 'Linux'
