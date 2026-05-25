@@ -2,7 +2,7 @@ use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{
-    SFX_ID_BASE_HIT, SFX_ID_BLIP, SFX_ID_DESELECT, SFX_ID_ENEMY_HIT, SFX_ID_TURRET_HEAVY,
+    MusicId, SFX_ID_BASE_HIT, SFX_ID_BLIP, SFX_ID_DESELECT, SFX_ID_ENEMY_HIT, SFX_ID_TURRET_HEAVY,
     SFX_ID_TURRET_LIGHT, SFX_ID_TURRET_MEDIUM, SfxId, TEXTURE_ID_FONTSHEET, TEXTURE_ID_LEEKSHEET,
     TEXTURE_ID_MIKU, sprite_info_energy, sprite_info_grass, sprite_info_highlight,
     sprite_info_leek, sprite_info_luka_tower, sprite_info_miku, sprite_info_miku_tower,
@@ -603,6 +603,9 @@ pub struct LevelScene {
     cell_to_turrets: HashMap<(usize, usize), Vec<usize>>,
     projectiles: Vec<Projectile>,
     enemy_spawner: EnemySpawner,
+    bg_music_ids: Vec<MusicId>,
+    now_playing: Option<usize>,
+    time_to_play_next_song: Option<ReadyState>,
 }
 
 // TODO: both base and rect right now are x,y in world coordinates w,h in screen. we should fix that up.
@@ -623,6 +626,9 @@ impl Default for LevelScene {
             cell_to_turrets,
             projectiles: Vec::new(),
             enemy_spawner: EnemySpawner::new(10, 120),
+            bg_music_ids: Vec::new(),
+            now_playing: None,
+            time_to_play_next_song: None,
         }
     }
 }
@@ -724,6 +730,49 @@ impl LevelScene {
             });
         }
     }
+
+    fn update_music(&mut self, ticks: u32, game_context: &mut GameContext) {
+        if self.bg_music_ids.len() <= 0 {
+            return;
+        }
+        match self.time_to_play_next_song {
+            None => {
+                // Initial load, just start playing.
+                let music_id = self.bg_music_ids[0];
+                self.time_to_play_next_song = game_context.audio.as_mut().map(|audio| {
+                    // do this in the map so that if we cant load the audio we dont set the now playing
+                    self.now_playing = Some(0);
+                    let duration = audio.music_duration_seconds(music_id).as_secs();
+                    audio.play_music(music_id);
+                    ReadyState::Cooldown {
+                        wait_for: duration as u32 * 60, // roughly 60 ticks per second.
+                        ticks_waited: 0,
+                    }
+                });
+            }
+            Some(ready_state) => {
+                let next_state = advance_ready_state(ready_state, ticks);
+                self.time_to_play_next_song = Some(next_state);
+                match (next_state, self.now_playing) {
+                    (ReadyState::Ready, Some(bg_music_ids_idx)) => {
+                        let next_idx = (bg_music_ids_idx + 1).rem_euclid(self.bg_music_ids.len());
+                        let music_id = self.bg_music_ids[next_idx];
+                        self.time_to_play_next_song = game_context.audio.as_mut().map(|audio| {
+                            // do this in the map so that if we cant load the audio we dont set the now playing
+                            self.now_playing = Some(next_idx);
+                            let duration = audio.music_duration_seconds(music_id).as_secs();
+                            audio.play_music(music_id);
+                            ReadyState::Cooldown {
+                                wait_for: duration as u32 * 60, // roughly 60 ticks per second.
+                                ticks_waited: 0,
+                            }
+                        });
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
 }
 
 impl Scene for LevelScene {
@@ -747,6 +796,11 @@ impl Scene for LevelScene {
         audio.load_sfx(SFX_ID_TURRET_HEAVY);
         audio.load_sfx(SFX_ID_TURRET_LIGHT);
         audio.load_sfx(SFX_ID_TURRET_MEDIUM);
+
+        // Background music is loaded semi-dynamically from the assets folder.
+        // so keep track of the ids we care about by reading the file names which
+        // should be numeric:
+        self.bg_music_ids = audio.load_bg_music();
     }
 
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
@@ -758,6 +812,7 @@ impl Scene for LevelScene {
             cell_gap: 0,
         };
 
+        self.update_music(ticks, game_context);
         self.grass.advance(ticks);
         self.road.advance(ticks);
         self.base.sprite_info.advance(ticks);
