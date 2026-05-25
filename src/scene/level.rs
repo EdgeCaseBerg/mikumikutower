@@ -30,11 +30,11 @@ impl Enemy {
     fn teto(position: Rect) -> Self {
         Self {
             position,
-            health: Health::default(), // tweak later.
+            health: Health::new(30),
             sprite_info: sprite_info_teto_walking(),
             ready_state: ReadyState::Ready,
             path_index: 0,
-            speed: 60,
+            speed: 30,
         }
     }
 
@@ -123,8 +123,9 @@ impl EnemySpawner {
 
         match self.ready_state {
             ReadyState::Ready => {
-                let enemy = Enemy::teto(Rect::new(27, 9, 40, 40));
+                let mut enemy = Enemy::teto(Rect::new(27, 9, 40, 40));
                 self.spawned = self.spawned.saturating_add(1);
+                enemy.health.increase(self.round * 2);
                 Some(enemy)
             }
             _ => None,
@@ -143,13 +144,10 @@ impl EnemySpawner {
             ReadyState::Ready => {
                 self.round = self.round.saturating_add(1);
                 self.spawned = 0;
-                self.enemies_per_round = self
-                    .enemies_per_round
-                    .saturating_add(self.enemies_per_round / 3);
-                self.spawn_in_ticks = (self.spawn_in_ticks - 5).max(10);
-                eprintln!("New round {:?} ", self);
-                // TODO maybe increase damage by 1 per every 5 or so rounds?
-                // TODO maybe increase speed by ? per every 5 rounds or so?
+                self.enemies_per_round = self.enemies_per_round.saturating_add(2);
+                if self.round.rem_euclid(5) == 0 {
+                    self.spawn_in_ticks = (self.spawn_in_ticks - 10).max(10);
+                }
                 self.cooldown();
             }
             _ => {}
@@ -164,12 +162,20 @@ struct Health {
 }
 
 impl Health {
+    fn new(max: u8) -> Self {
+        Health { current: max, max }
+    }
     fn damage(&mut self, amount: u8) {
         self.current = self.current.saturating_sub(amount);
     }
 
     fn is_dead(&self) -> bool {
         self.current <= 0
+    }
+
+    fn increase(&mut self, amount: u32) {
+        self.current = self.current.saturating_add(amount as u8);
+        self.max += self.max.saturating_add(amount as u8);
     }
 }
 
