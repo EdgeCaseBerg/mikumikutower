@@ -6,6 +6,7 @@ pub trait Audio {
     fn load_sfx(&mut self, id: SfxId);
     fn play_music(&mut self, id: MusicId);
     fn load_music(&mut self, id: MusicId);
+    fn load_bg_music(&mut self) -> Vec<MusicId>;
     fn music_duration_seconds(&self, id: MusicId) -> Duration;
     fn prepare(&mut self);
 }

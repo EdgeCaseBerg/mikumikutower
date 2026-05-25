@@ -26,6 +26,7 @@ use sdl3::audio::AudioSpecWAV;
 use sdl3::audio::AudioStreamOwner;
 use sdl3::event::{Event, WindowEvent};
 use sdl3::filesystem::get_current_directory;
+use sdl3::filesystem::{GlobFlags, glob_directory};
 use sdl3::image::LoadTexture;
 use sdl3::keyboard::Keycode;
 use sdl3::mouse::MouseButton;
@@ -221,7 +222,6 @@ impl Audio for SDL3Sounds {
             MusicTrack::B => MusicTrack::A,
         };
     }
-
     fn load_music(&mut self, id: MusicId) {
         if !self.music_by_id.get(&id).is_none() {
             return;
@@ -234,6 +234,28 @@ impl Audio for SDL3Sounds {
             spec,
         };
         self.music_by_id.insert(id, data);
+    }
+    fn load_bg_music(&mut self) -> Vec<MusicId> {
+        let user_wav_folder = self.base_path.join("audio").join("cc-vocaloid");
+        let mut ids = Vec::new();
+        if let Ok(results) =
+            glob_directory(user_wav_folder, Some("*.wav"), GlobFlags::CASEINSENSITIVE)
+        {
+            for path in &results {
+                let filename = path.file_name();
+                if filename.is_none() {
+                    continue;
+                }
+                let filename = filename.unwrap().to_str().unwrap();
+                let desired_id = filename[0..filename.len() - 4].parse::<usize>();
+                if desired_id.is_ok() {
+                    let music_id = MusicId(desired_id.unwrap());
+                    ids.push(music_id);
+                    self.load_music(music_id);
+                }
+            }
+        }
+        ids
     }
     fn music_duration_seconds(&self, id: MusicId) -> Duration {
         let Some(sound_data) = self.music_by_id.get(&id) else {
