@@ -2,8 +2,8 @@ use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{
-    TEXTURE_ID_FONTSHEET, TEXTURE_ID_GAMEOVER, TEXTURE_ID_LEEKSHEET, sprite_info_gameover_miku,
-    sprite_info_highlight, sprite_info_topbar_bg,
+    MUSIC_ID_MOON, MUSIC_ID_TETO, MusicId, SFX_ID_BLIP, TEXTURE_ID_FONTSHEET, TEXTURE_ID_GAMEOVER,
+    TEXTURE_ID_LEEKSHEET, sprite_info_gameover_miku, sprite_info_highlight, sprite_info_topbar_bg,
 };
 use crate::font::get_rects_for_str;
 use crate::game::GameContext;
@@ -113,6 +113,8 @@ pub struct GameOverScene {
     miku: SpriteInfo,
     try_again_btn: Button,
     give_up_btn: Button,
+    desired_music: MusicId,
+    current_music: MusicId,
 }
 
 impl GameOverScene {
@@ -149,6 +151,8 @@ impl Default for GameOverScene {
                     height: 1,
                 },
             ),
+            desired_music: MUSIC_ID_TETO,
+            current_music: MUSIC_ID_MOON, // start off wrong to trigger it
         }
     }
 }
@@ -162,6 +166,14 @@ impl Scene for GameOverScene {
         asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_GAMEOVER);
         asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_LEEKSHEET);
         asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_FONTSHEET);
+
+        let Some(ref mut audio) = game_context.audio else {
+            return;
+        };
+
+        audio.load_sfx(SFX_ID_BLIP);
+        audio.load_music(MUSIC_ID_MOON);
+        audio.load_music(MUSIC_ID_TETO);
     }
 
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
@@ -172,20 +184,35 @@ impl Scene for GameOverScene {
         // Check where mouse is, hover over quit -> miku sobbing (frame 1)
         if self.give_up_btn.hovered {
             self.miku.current_frame = 1;
+            self.desired_music = MUSIC_ID_TETO;
         } else if self.try_again_btn.hovered {
             self.miku.current_frame = 2;
+            self.desired_music = MUSIC_ID_MOON;
         } else {
             self.miku.current_frame = 0;
         }
 
         if self.try_again_btn.clicked && game_context.next_scene.is_none() {
             game_context.queue_level();
+            game_context.audio.as_mut().map(|audio| {
+                audio.play_sfx(SFX_ID_BLIP);
+            });
             self.try_again_btn.clicked = false;
         }
 
         if self.give_up_btn.clicked && game_context.next_scene.is_none() {
             game_context.shutdown();
+            game_context.audio.as_mut().map(|audio| {
+                audio.play_sfx(SFX_ID_BLIP);
+            });
             self.give_up_btn.clicked = false;
+        }
+
+        if self.desired_music != self.current_music {
+            game_context.audio.as_mut().map(|audio| {
+                audio.play_music(self.desired_music);
+                self.current_music = self.desired_music;
+            });
         }
     }
     fn draw(&mut self, game_context: &mut GameContext) {
