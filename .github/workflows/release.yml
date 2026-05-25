@@ -95,6 +95,12 @@ jobs:
           cp target/release/mikumikutower dist/
           cp target/release/libSDL3* dist/
 
+          # game assets
+          cp -r assets dist/
+          cp -r data dist/ || true
+          cp -r levels dist/ || true
+          cp -r shaders dist/ || true
+
       - name: Prepare dist (macOS)
         if: runner.os == 'macOS'
         run: |
@@ -102,15 +108,25 @@ jobs:
           cp target/release/mikumikutower dist/
           cp target/release/libSDL3*.dylib dist/ || true
 
+          cp -r assets dist/
+          cp -r data dist/ || true
+          cp -r levels dist/ || true
+          cp -r shaders dist/ || true
+
           install_name_tool -add_rpath @loader_path dist/mikumikutower || true
 
       - name: Prepare dist (Microslop)
         if: runner.os == 'Windows'
         run: |
-          mkdir dist
           copy target\release\mikumikutower.exe dist\
-          copy target\release\libSDL3* dist\
           copy target\release\SDL3.dll dist\
+          copy target\release\SDL3_image.dll dist\
+
+          xcopy assets dist\assets /E /I /Y
+
+          xcopy data dist\data /E /I /Y || exit /b 0
+          xcopy levels dist\levels /E /I /Y || exit /b 0
+          xcopy shaders dist\shaders /E /I /Y || exit /b 0
           # Note that if we ever need a directory, xcopy target\release\libSDL3* dist\ /Y /I will be the thing to do.
 
       - name: Archive (Linux)
