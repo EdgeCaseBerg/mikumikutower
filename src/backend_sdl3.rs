@@ -235,6 +235,12 @@ impl Audio for SDL3Sounds {
         };
         self.music_by_id.insert(id, data);
     }
+    fn music_duration_seconds(&self, id: MusicId) -> Duration {
+        let Some(sound_data) = self.music_by_id.get(&id) else {
+            return Duration::from_secs_f64(0.0);
+        };
+        spec_duration(&sound_data.spec)
+    }
 
     fn prepare(&mut self) {
         let mut specs_to_prepare: HashSet<Spec> = self
