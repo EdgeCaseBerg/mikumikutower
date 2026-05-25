@@ -9,6 +9,16 @@ sudo apt install libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-d
 On other platforms figure it out yourself here https://github.com/libsdl-org/SDL/blob/main/INSTALL.md
 
 
+## Side notes about the game
+
+If you have interest in seeing how this game was made from start to finish, then you can read the full dev blog here https://peetseater.space/blag/2026-05-25-miku-miku-tower-defense
+
+If you want to play your own music while in the game, then title the wav files 1.wav, 2.wav, etc up to 999.wav into the assets/audio/cc-vocaloid folder.
+
+There is no audio controls in the game, so turn it down and then up as needed. 
+
+If you'd like to have your own sprites in the game then replace the various assets in the made-by-me folder and keep the same sizes.
+
 ## Credits
 
 The lovely vocaloid related sprites are sourced from the Miku n Pop game, see the README in the asset folder for more details.
