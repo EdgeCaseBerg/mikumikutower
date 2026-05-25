@@ -1,7 +1,7 @@
 use crate::Rect;
 use crate::Scene;
 use crate::SpriteInfo;
-use crate::constants::{TEXTURE_ID_MIKU_WAVE, sprite_info_miku_wave};
+use crate::constants::{MUSIC_ID_QUIT, TEXTURE_ID_MIKU_WAVE, sprite_info_miku_wave};
 use crate::game::GameContext;
 use crate::grid_layout::GridLayout;
 use crate::renderer::RenderCommand;
@@ -10,6 +10,7 @@ use crate::{ReadyState, advance_ready_state};
 pub struct ShuttingDownScene {
     miku: SpriteInfo,
     countdown: ReadyState,
+    music_started: bool,
 }
 
 impl ShuttingDownScene {
@@ -30,8 +31,9 @@ impl Default for ShuttingDownScene {
             miku: sprite_info_miku_wave(),
             countdown: ReadyState::Cooldown {
                 ticks_waited: 0,
-                wait_for: 120,
+                wait_for: 360,
             },
+            music_started: false,
         }
     }
 }
@@ -42,8 +44,19 @@ impl Scene for ShuttingDownScene {
             return;
         };
         asset_loader.ensure_texture_spritesheet_loaded(TEXTURE_ID_MIKU_WAVE);
+        let Some(ref mut audio) = game_context.audio else {
+            return;
+        };
+
+        audio.load_music(MUSIC_ID_QUIT);
     }
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
+        if !self.music_started {
+            game_context.audio.as_mut().map(|audio| {
+                audio.play_music(MUSIC_ID_QUIT);
+            });
+            self.music_started = true;
+        }
         self.miku.advance(ticks);
         self.countdown = advance_ready_state(self.countdown, ticks);
         let ReadyState::Ready = self.countdown else {
