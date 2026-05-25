@@ -118,6 +118,7 @@ jobs:
       - name: Prepare dist (Microslop)
         if: runner.os == 'Windows'
         run: |
+          mkdir dist
           copy target\release\mikumikutower.exe dist\
           copy target\release\SDL3.dll dist\
           copy target\release\SDL3_image.dll dist\
