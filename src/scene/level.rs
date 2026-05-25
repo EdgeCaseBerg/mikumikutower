@@ -112,7 +112,6 @@ impl EnemySpawner {
 
     fn update(&mut self, ticks: u32) {
         self.ready_state = advance_ready_state(self.ready_state, ticks);
-        // TODO handle advancing round and whatnot
     }
 
     fn spawn(&mut self) -> Option<Enemy> {
@@ -328,9 +327,10 @@ impl Tower {
     fn miku(position: Rect) -> Self {
         let mut base = Self::basic(position);
         base.sprite_info = sprite_info_miku_tower();
-        base.cost = 20;
+        base.cost = 25;
         base.damage = 5;
         base.cooldown = 30;
+        base.range = 7;
         base.sound = SFX_ID_TURRET_MEDIUM;
         base
     }
@@ -339,8 +339,9 @@ impl Tower {
         let mut base = Self::basic(position);
         base.sprite_info = sprite_info_rin_tower();
         base.cost = 15;
-        base.damage = 3;
-        base.cooldown = 15;
+        base.damage = 2;
+        base.cooldown = 20;
+        base.range = 5;
         base.sound = SFX_ID_TURRET_LIGHT;
         base
     }
@@ -348,8 +349,9 @@ impl Tower {
     fn luka(position: Rect) -> Self {
         let mut base = Self::basic(position);
         base.sprite_info = sprite_info_luka_tower();
-        base.cost = 30;
+        base.cost = 40;
         base.damage = 15;
+        base.range = 10;
         base.cooldown = 60;
         base.sound = SFX_ID_TURRET_HEAVY;
         base
@@ -381,7 +383,7 @@ impl Default for TopBar {
             rin_tower: Tower::rin(Rect::new(1, 0, 32, 32)),
             luka_tower: Tower::luka(Rect::new(2, 0, 32, 32)),
             current_action: None,
-            money: 50, // TODO: figure out a good starting point for this
+            money: 50,
             defeated: 0,
             bg: sprite_info_topbar_bg(),
             hover_action: None,
@@ -911,7 +913,7 @@ impl Scene for LevelScene {
                     return true;
                 }
                 self.top_bar.defeated = self.top_bar.defeated.saturating_add(1);
-                self.top_bar.money = self.top_bar.money.saturating_add(10);
+                self.top_bar.money = self.top_bar.money.saturating_add(5);
                 done = true;
                 return false;
             });
