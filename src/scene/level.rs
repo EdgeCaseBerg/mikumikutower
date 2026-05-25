@@ -83,7 +83,6 @@ impl Enemy {
     }
 
     fn get_rect(&self) -> Rect {
-        // TODO: when on cooldown, return sprite_info_teto, when ready return
         self.sprite_info.get_rect()
     }
 }
