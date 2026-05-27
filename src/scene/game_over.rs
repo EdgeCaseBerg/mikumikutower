@@ -3,9 +3,8 @@ use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{
     MUSIC_ID_MOON, MUSIC_ID_TETO, MusicId, SFX_ID_BLIP, TEXTURE_ID_FONTSHEET, TEXTURE_ID_GAMEOVER,
-    TEXTURE_ID_LEEKSHEET, sprite_info_gameover_miku, sprite_info_highlight, sprite_info_topbar_bg,
+    TEXTURE_ID_LEEKSHEET, sprite_info_gameover_miku,
 };
-use crate::font::get_rects_for_str;
 use crate::game::GameContext;
 use crate::grid_layout::GridLayout;
 use crate::renderer::RenderCommand;

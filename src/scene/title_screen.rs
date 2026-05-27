@@ -3,9 +3,8 @@ use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{
     MUSIC_ID_PACHEBAL, SFX_ID_BLIP, SFX_ID_MEME, TEXTURE_ID_FONTSHEET, TEXTURE_ID_LEEKSHEET,
-    TEXTURE_ID_TITLE_BG, sprite_info_highlight, sprite_info_title, sprite_info_topbar_bg,
+    TEXTURE_ID_TITLE_BG, sprite_info_title,
 };
-use crate::font::get_rects_for_str;
 use crate::game::GameContext;
 use crate::grid_layout::GridLayout;
 use crate::renderer::RenderCommand;
