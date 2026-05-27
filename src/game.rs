@@ -129,7 +129,6 @@ impl Game {
             self.tick_loops += 1;
         }
         if self.tick_loops == max_loops_per_update {
-            // TODO prop log library here.
             eprintln!("Frame skipping detected, attempting to correct by skipping frames ahead");
             self.prev_tick = self.start_time.elapsed().as_nanos();
             self.next_tick = self.prev_tick + ns_per_update;

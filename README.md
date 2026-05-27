@@ -27,3 +27,12 @@ The font used in the game is BoldPixels by YukiPixels and you can find the links
 The sound effects were created with https://sfxr.me
 Other wav files used in non-level scenes were found on the internet over the years and I don't have the sources to all their originals.
 Hatsune Miku the character design herself is creative commons as noted here https://piapro.net/intl/en_for_creators.html though most people know her for her synthesizer which is owned by Crypton Future Media and Sony.
+
+## Enhancments / exercise for the bored
+
+ - Enhance with proper Result types in places for better error handling
+ - Add proper logging library
+ - Make game options take in properties from cli
+ - Make game ticks per second configurable or centralized
+ - increase damage of enemies over time
+ - Deal with fonts better

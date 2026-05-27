@@ -75,7 +75,7 @@ impl Enemy {
                     wait_for: self.speed,
                     ticks_waited: 0,
                 };
-                let damage = 1; // TODO store it per enemy かしら.
+                let damage = 1; // FUTURE ENHANCEMENT store it per enemy かしら.
                 Some(damage)
             }
             _ => None,
@@ -315,7 +315,7 @@ impl Tower {
         Self {
             position,
             state: ReadyState::Ready,
-            range: 5, // TODO: revisit once we decide how big our gameboard is
+            range: 5,
             sprite_info: sprite_info_leek(),
             cost: 10,
             damage: 1,
@@ -615,7 +615,6 @@ pub struct LevelScene {
     time_to_play_next_song: Option<ReadyState>,
 }
 
-// TODO: both base and rect right now are x,y in world coordinates w,h in screen. we should fix that up.
 impl Default for LevelScene {
     fn default() -> LevelScene {
         let initial_towers = vec![];
