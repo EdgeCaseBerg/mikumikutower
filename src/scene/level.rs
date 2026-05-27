@@ -582,15 +582,6 @@ impl TopBar {
         }
     }
 
-    fn buy_tower(&mut self, tower: &Tower) {
-        if tower.cost > self.money {
-            eprintln!("Dont Buy tower {}", self.money);
-            return;
-        }
-        self.money = self.money.saturating_sub(tower.cost);
-        eprintln!("Buy tower {}", self.money);
-    }
-
     fn refund_tower(&mut self, tower: &Tower) {
         self.money = self.money.saturating_add(tower.cost);
         eprintln!("Refund tower {}", self.money);
