@@ -123,12 +123,12 @@ pub fn run(game_options: &GameOptions, game: &mut Game) {
     let backend = init_backend(&game_options);
     let mut event_loop = backend.create_event_loop(&game_options);
     let mut game_context = crate::game::GameContext::default();
-    game_context.screen_size = (game_options.window_width, game_options.window_height);
     let renderer = event_loop.new_renderer(game_options);
-    game_context.renderer = Some(renderer);
     let asset_loader = event_loop.create_asset_loader(game_options);
-    game_context.asset_loader = Some(asset_loader);
     let audio = event_loop.create_audio(game_options);
+    game_context.screen_size = (game_options.window_width, game_options.window_height);
+    game_context.renderer = Some(renderer);
+    game_context.asset_loader = Some(asset_loader);
     game_context.audio = Some(audio);
     game.scene = Some(Box::new(TitleScene::default()));
     event_loop.run(game, &mut game_context);
