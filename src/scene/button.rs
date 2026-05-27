@@ -1,5 +1,4 @@
 use crate::Rect;
-use crate::Scene;
 use crate::SpriteInfo;
 use crate::constants::{
     TEXTURE_ID_FONTSHEET, TEXTURE_ID_LEEKSHEET,

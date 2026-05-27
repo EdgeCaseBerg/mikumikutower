@@ -47,7 +47,7 @@ fn advance_ready_state(ready_state: ReadyState, ticks: u32) -> ReadyState {
 }
 
 #[derive(Debug, Clone)]
-struct SpriteInfo {
+pub struct SpriteInfo {
     start_x: u32,
     start_y: u32,
     width: u32,
