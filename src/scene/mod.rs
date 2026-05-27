@@ -2,7 +2,6 @@ use crate::game::GameContext;
 
 pub mod game_over;
 pub mod level;
-pub mod loading;
 pub mod shutting_down;
 pub mod title_screen;
 
