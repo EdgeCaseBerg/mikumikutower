@@ -124,7 +124,6 @@ impl Game {
         self.next_tick = current + ns_per_update;
         self.lag += elapsed;
         self.tick_loops = 0;
-        // TODO: add max loop counter here to bail out to avoid system lags
         while self.lag >= ns_per_update && self.tick_loops < max_loops_per_update {
             self.lag -= ns_per_update;
             self.tick_loops += 1;

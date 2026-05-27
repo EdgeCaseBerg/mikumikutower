@@ -149,7 +149,7 @@ impl SfxStream {
 
 impl Audio for SDL3Sounds {
     fn play_sfx(&mut self, id: SfxId) {
-        // TODO should we take this instant in from above?
+        // FUTURE CONSIDERATION: should we take this instant in from above?
         let now = Instant::now();
         let Some(sound_data) = self.sound_by_id.get(&id) else {
             return;
@@ -173,7 +173,7 @@ impl Audio for SDL3Sounds {
             return;
         }
 
-        // TODO I suppose make things turn results and ? it all.
+        // FUTURE ENHANCEMENT I suppose make things turn results and ? it all.
         let path = self.base_path.join(sfx_id_to_relative_path(sound_id));
         let spec = AudioSpecWAV::load_wav(path).expect("could not load spec from path");
         let data = SoundData {
@@ -226,7 +226,7 @@ impl Audio for SDL3Sounds {
         if !self.music_by_id.get(&id).is_none() {
             return;
         }
-        // TODO I suppose make things turn results and ? it all.
+        // FUTURE ENHANCEMENT I suppose make things turn results and ? it all.
         let path = self.base_path.join(music_id_to_relative_path(id));
         let spec = AudioSpecWAV::load_wav(path).expect("could not load spec from path");
         let data = SoundData {
@@ -446,7 +446,6 @@ impl BackendEventLoop for EventLoopSDL3 {
         }
 
         'running: loop {
-            // TODO: merge events into state tracking system that doesn't exist yet
             for event in self.event_pump.poll_iter() {
                 match event {
                     Event::Quit { .. }
