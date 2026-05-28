@@ -399,7 +399,7 @@ impl TopBar {
         };
 
         let mut not_hovering_on_tower = true;
-        for tower in vec![
+        for tower in [
             &mut self.miku_tower,
             &mut self.rin_tower,
             &mut self.luka_tower,
