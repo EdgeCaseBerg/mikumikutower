@@ -120,8 +120,8 @@ impl<T: PartialOrd + Copy + Add<Output = T> + Sub<Output = T> + Div<Output = T>>
 }
 
 pub fn run(game_options: &GameOptions, game: &mut Game) {
-    let backend = init_backend(&game_options);
-    let mut event_loop = backend.create_event_loop(&game_options);
+    let backend = init_backend(game_options);
+    let mut event_loop = backend.create_event_loop(game_options);
     let mut game_context = crate::game::GameContext::default();
     let renderer = event_loop.new_renderer(game_options);
     let asset_loader = event_loop.create_asset_loader(game_options);
