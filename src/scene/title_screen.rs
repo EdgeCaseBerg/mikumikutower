@@ -102,7 +102,7 @@ impl Scene for TitleScene {
         match self.play_music {
             ReadyState::Ready => {
                 game_context.audio.as_mut().map(|audio| {
-                    audio.play_music(MUSIC_ID_PACHEBAL);
+                    let _ = audio.play_music(MUSIC_ID_PACHEBAL);
                 });
                 self.play_music = ReadyState::Cooldown {
                     wait_for: 14 * 60,

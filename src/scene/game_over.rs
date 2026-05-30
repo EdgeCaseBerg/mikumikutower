@@ -112,7 +112,9 @@ impl Scene for GameOverScene {
 
         if self.desired_music != self.current_music {
             game_context.audio.as_mut().map(|audio| {
-                audio.play_music(self.desired_music);
+                // if we wanted to show an error then we could handle this
+                // but audio not playing is fine for now
+                let _ = audio.play_music(self.desired_music);
                 self.current_music = self.desired_music;
             });
         }

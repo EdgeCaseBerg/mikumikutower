@@ -53,7 +53,7 @@ impl Scene for ShuttingDownScene {
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
         if !self.music_started {
             game_context.audio.as_mut().map(|audio| {
-                audio.play_music(MUSIC_ID_QUIT);
+                let _ = audio.play_music(MUSIC_ID_QUIT);
             });
             self.music_started = true;
         }

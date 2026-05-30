@@ -740,7 +740,7 @@ impl LevelScene {
                     // do this in the map so that if we cant load the audio we dont set the now playing
                     self.now_playing = Some(0);
                     let duration = audio.music_duration_seconds(music_id).as_secs();
-                    audio.play_music(music_id);
+                    let _ = audio.play_music(music_id);
                     ReadyState::Cooldown {
                         wait_for: duration as u32 * 60, // roughly 60 ticks per second.
                         ticks_waited: 0,
@@ -758,7 +758,7 @@ impl LevelScene {
                             // do this in the map so that if we cant load the audio we dont set the now playing
                             self.now_playing = Some(next_idx);
                             let duration = audio.music_duration_seconds(music_id).as_secs();
-                            audio.play_music(music_id);
+                            let _ = audio.play_music(music_id);
                             ReadyState::Cooldown {
                                 wait_for: duration as u32 * 60, // roughly 60 ticks per second.
                                 ticks_waited: 0,

@@ -15,6 +15,7 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use std::time::Duration;
 use std::time::Instant;
+use std::error::Error;
 
 use sdl3::AudioSubsystem;
 use sdl3::EventPump;
@@ -139,11 +140,12 @@ impl SfxStream {
         self.free_at.map_or(true, |t| now >= t)
     }
 
-    fn claim(&mut self, entry: &SoundData, now: Instant) {
-        let _ = self.stream.clear();
-        let _ = self.stream.put_data(entry.spec.buffer());
-        let _ = self.stream.resume();
+    fn claim(&mut self, entry: &SoundData, now: Instant) -> Result<(), Box<dyn Error>> {
+        let _ = self.stream.clear()?;
+        let _ = self.stream.put_data(entry.spec.buffer())?;
+        let _ = self.stream.resume()?;
         self.free_at = Some(now + entry.duration);
+        Ok(())
     }
 }
 
@@ -166,7 +168,8 @@ impl Audio for SDL3Sounds {
             // All busy — steal the one that will free soonest
             bucket.streams.iter_mut().min_by_key(|s| s.free_at).unwrap()
         };
-        stream.claim(&sound_data, now);
+        // TODO return result
+        let _ = stream.claim(&sound_data, now);
     }
     fn load_sfx(&mut self, sound_id: SfxId) {
         if !self.sound_by_id.get(&sound_id).is_none() {
@@ -182,9 +185,10 @@ impl Audio for SDL3Sounds {
         };
         self.sound_by_id.insert(sound_id, data);
     }
-    fn play_music(&mut self, id: MusicId) {
+    fn play_music(&mut self, id: MusicId) -> Result<(), Box<dyn std::error::Error>> {
         let Some(sound_data) = self.music_by_id.get(&id) else {
-            return;
+            let err = format!("Could not play music with id {}, music not loaded.", id.0);
+            return Err(Box::<dyn Error>::from(err));
         };
         let (play_index, pause_index) = match self.current_track {
             MusicTrack::A => (0, 1),
@@ -207,7 +211,7 @@ impl Audio for SDL3Sounds {
                     .expect("could not open logical device for spec"),
                 free_at: Some(now),
             };
-            stream.claim(&sound_data, now);
+            stream.claim(&sound_data, now)?;
             stream
         });
 
@@ -221,6 +225,7 @@ impl Audio for SDL3Sounds {
             MusicTrack::A => MusicTrack::B,
             MusicTrack::B => MusicTrack::A,
         };
+        Ok(())
     }
     fn load_music(&mut self, id: MusicId) {
         if !self.music_by_id.get(&id).is_none() {
