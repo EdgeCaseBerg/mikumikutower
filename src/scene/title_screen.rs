@@ -77,8 +77,8 @@ impl Scene for TitleScene {
             return;
         };
 
-        audio.load_sfx(SFX_ID_BLIP);
-        audio.load_sfx(SFX_ID_MEME);
+        let _ = audio.load_sfx(SFX_ID_BLIP);
+        let _ = audio.load_sfx(SFX_ID_MEME);
         let _ = audio.load_music(MUSIC_ID_PACHEBAL);
     }
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
@@ -93,7 +93,7 @@ impl Scene for TitleScene {
                     ticks_waited: 0,
                 };
                 game_context.audio.as_mut().map(|audio| {
-                    audio.play_sfx(SFX_ID_MEME);
+                    let _ = audio.play_sfx(SFX_ID_MEME);
                 });
             }
             _ => {}
@@ -117,7 +117,7 @@ impl Scene for TitleScene {
 
         if self.start_game_btn.clicked && game_context.next_scene.is_none() {
             game_context.audio.as_mut().map(|audio| {
-                audio.play_sfx(SFX_ID_BLIP);
+                let _ =audio.play_sfx(SFX_ID_BLIP);
             });
             game_context.queue_level();
             self.start_game_btn.clicked = false;
@@ -125,7 +125,7 @@ impl Scene for TitleScene {
 
         if self.quit_btn.clicked && game_context.next_scene.is_none() {
             game_context.audio.as_mut().map(|audio| {
-                audio.play_sfx(SFX_ID_BLIP);
+                let _ = audio.play_sfx(SFX_ID_BLIP);
             });
             game_context.shutdown();
             self.quit_btn.clicked = false;
