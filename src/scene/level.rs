@@ -415,7 +415,7 @@ impl TopBar {
                     self.current_action = Some(PlayerAction::PlaceTower(tower.clone()));
                     game_context.mouse_context.consume_left_click();
                     game_context.audio.as_mut().map(|audio| {
-                        audio.play_sfx(SFX_ID_BLIP);
+                        let _ = audio.play_sfx(SFX_ID_BLIP);
                     });
                     // annoyingly, we cant call self.buy_tower without the borrow checker bitching.
                     // because it can't understand that only the money field will be mutated within that call.
@@ -434,7 +434,7 @@ impl TopBar {
                     game_context.mouse_context.consume_right_click();
                     self.current_action = None;
                     game_context.audio.as_mut().map(|audio| {
-                        audio.play_sfx(SFX_ID_DESELECT);
+                        let _ = audio.play_sfx(SFX_ID_DESELECT);
                     });
                 }
                 _ => {}
@@ -710,7 +710,7 @@ impl LevelScene {
             self.add_tower(tower);
             game_context.mouse_context.consume_left_click();
             game_context.audio.as_mut().map(|audio| {
-                audio.play_sfx(SFX_ID_BLIP);
+                let _ = audio.play_sfx(SFX_ID_BLIP);
             });
         }
 
@@ -723,7 +723,7 @@ impl LevelScene {
             self.top_bar.refund_tower(&tower);
             game_context.mouse_context.consume_right_click();
             game_context.audio.as_mut().map(|audio| {
-                audio.play_sfx(SFX_ID_DESELECT);
+                let _ = audio.play_sfx(SFX_ID_DESELECT);
             });
         }
     }
@@ -801,13 +801,25 @@ impl Scene for LevelScene {
             return;
         };
 
-        audio.load_sfx(SFX_ID_BLIP);
-        audio.load_sfx(SFX_ID_DESELECT);
-        audio.load_sfx(SFX_ID_BASE_HIT);
-        audio.load_sfx(SFX_ID_ENEMY_HIT);
-        audio.load_sfx(SFX_ID_TURRET_HEAVY);
-        audio.load_sfx(SFX_ID_TURRET_LIGHT);
-        audio.load_sfx(SFX_ID_TURRET_MEDIUM);
+        let _ = audio.load_sfx(SFX_ID_BLIP).map_err(|e| eprintln!("{}", e));
+        let _ = audio
+            .load_sfx(SFX_ID_DESELECT)
+            .map_err(|e| eprintln!("{}", e));
+        let _ = audio
+            .load_sfx(SFX_ID_BASE_HIT)
+            .map_err(|e| eprintln!("{}", e));
+        let _ = audio
+            .load_sfx(SFX_ID_ENEMY_HIT)
+            .map_err(|e| eprintln!("{}", e));
+        let _ = audio
+            .load_sfx(SFX_ID_TURRET_HEAVY)
+            .map_err(|e| eprintln!("{}", e));
+        let _ = audio
+            .load_sfx(SFX_ID_TURRET_LIGHT)
+            .map_err(|e| eprintln!("{}", e));
+        let _ = audio
+            .load_sfx(SFX_ID_TURRET_MEDIUM)
+            .map_err(|e| eprintln!("{}", e));
 
         // Background music is loaded semi-dynamically from the assets folder.
         // so keep track of the ids we care about by reading the file names which
@@ -884,14 +896,14 @@ impl Scene for LevelScene {
         if turret_sounds.len() > 0 {
             for sound_id in turret_sounds {
                 game_context.audio.as_mut().map(|audio| {
-                    audio.play_sfx(sound_id);
+                    let _ = audio.play_sfx(sound_id);
                 });
             }
         }
 
         if base_hit {
             game_context.audio.as_mut().map(|audio| {
-                audio.play_sfx(SFX_ID_BASE_HIT);
+                let _ = audio.play_sfx(SFX_ID_BASE_HIT);
             });
         }
 
@@ -936,7 +948,7 @@ impl Scene for LevelScene {
         });
         if enemy_hit {
             game_context.audio.as_mut().map(|audio| {
-                audio.play_sfx(SFX_ID_ENEMY_HIT);
+                let _ = audio.play_sfx(SFX_ID_ENEMY_HIT);
             });
         }
         self.check_action(&layout, game_context);
