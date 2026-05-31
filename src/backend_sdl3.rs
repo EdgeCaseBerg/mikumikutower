@@ -1,6 +1,6 @@
 use crate::Rect;
 use crate::asset_loader::AssetLoader;
-use crate::audio::Audio;
+use crate::audio::{Audio, AudioResult};
 use crate::backend::*;
 use crate::constants::*;
 use crate::constants::{MusicId, SfxId};
@@ -227,18 +227,20 @@ impl Audio for SDL3Sounds {
         };
         Ok(())
     }
-    fn load_music(&mut self, id: MusicId) {
+
+    /// Calling this method with the same id multiple times will only load the music once.
+    fn load_music(&mut self, id: MusicId) -> AudioResult<()> {
         if !self.music_by_id.get(&id).is_none() {
-            return;
+            return Ok(());
         }
-        // FUTURE ENHANCEMENT I suppose make things turn results and ? it all.
         let path = self.base_path.join(music_id_to_relative_path(id));
-        let spec = AudioSpecWAV::load_wav(path).expect("could not load spec from path");
+        let spec = AudioSpecWAV::load_wav(path)?;
         let data = SoundData {
             duration: spec_duration(&spec),
             spec,
         };
         self.music_by_id.insert(id, data);
+        Ok(())
     }
     fn load_bg_music(&mut self) -> Vec<MusicId> {
         let user_wav_folder = self.base_path.join("audio").join("cc-vocaloid");
@@ -262,7 +264,7 @@ impl Audio for SDL3Sounds {
         }
         ids
     }
-    fn music_duration_seconds(&self, id: MusicId) -> Result<Duration, Box<dyn Error>> {
+    fn music_duration_seconds(&self, id: MusicId) -> AudioResult<Duration> {
         let Some(sound_data) = self.music_by_id.get(&id) else {
             let err = format!(
                 "Could not compute duration of music with id {}, music not loaded.",
