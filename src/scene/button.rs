@@ -1,27 +1,24 @@
 use crate::Rect;
 use crate::SpriteInfo;
 use crate::constants::{
-    TEXTURE_ID_FONTSHEET, TEXTURE_ID_LEEKSHEET,
-    sprite_info_highlight, sprite_info_topbar_bg,
+    TEXTURE_ID_FONTSHEET, TEXTURE_ID_LEEKSHEET, sprite_info_highlight, sprite_info_topbar_bg,
 };
 use crate::font::get_rects_for_str;
 use crate::game::GameContext;
 use crate::grid_layout::GridLayout;
 use crate::renderer::RenderCommand;
 
-
-
 pub struct Button {
-    pub (crate) text: String,
-    pub (crate) rect: Rect,
-    pub (crate) hovered: bool,
-    pub (crate) clicked: bool,
-    pub (crate) bg: SpriteInfo,
-    pub (crate) highlight: SpriteInfo,
+    pub(crate) text: String,
+    pub(crate) rect: Rect,
+    pub(crate) hovered: bool,
+    pub(crate) clicked: bool,
+    pub(crate) bg: SpriteInfo,
+    pub(crate) highlight: SpriteInfo,
 }
 
 impl Button {
-    pub (crate) fn new(text: String, rect: Rect) -> Self {
+    pub(crate) fn new(text: String, rect: Rect) -> Self {
         Self {
             text,
             rect,
@@ -32,7 +29,7 @@ impl Button {
         }
     }
 
-    pub (crate) fn relative_layout(&self, parent_layout: &GridLayout) -> GridLayout {
+    pub(crate) fn relative_layout(&self, parent_layout: &GridLayout) -> GridLayout {
         let anchor = parent_layout.cell_rect(self.rect.y as usize, self.rect.x as usize);
         let width = anchor.width * self.rect.width;
         let height = anchor.height * self.rect.height;
@@ -49,7 +46,12 @@ impl Button {
         }
     }
 
-    pub (crate) fn update(&mut self, ticks: u32, game_context: &GameContext, parent_layout: &GridLayout) {
+    pub(crate) fn update(
+        &mut self,
+        ticks: u32,
+        game_context: &GameContext,
+        parent_layout: &GridLayout,
+    ) {
         let layout = self.relative_layout(parent_layout);
         let Some(_) = layout.cell_for_mouse(game_context.mouse_context.position) else {
             self.hovered = false;
@@ -65,7 +67,7 @@ impl Button {
         }
     }
 
-    pub (crate) fn draw(&mut self, game_context: &mut GameContext, parent_layout: &GridLayout) {
+    pub(crate) fn draw(&mut self, game_context: &mut GameContext, parent_layout: &GridLayout) {
         let Some(ref mut renderer) = game_context.renderer else {
             return;
         };

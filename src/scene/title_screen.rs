@@ -8,8 +8,8 @@ use crate::constants::{
 use crate::game::GameContext;
 use crate::grid_layout::GridLayout;
 use crate::renderer::RenderCommand;
-use crate::{ReadyState, advance_ready_state};
 use crate::scene::button::Button;
+use crate::{ReadyState, advance_ready_state};
 
 pub struct TitleScene {
     bg: SpriteInfo,

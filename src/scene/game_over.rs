@@ -10,7 +10,6 @@ use crate::grid_layout::GridLayout;
 use crate::renderer::RenderCommand;
 use crate::scene::button::Button;
 
-
 pub struct GameOverScene {
     miku: SpriteInfo,
     try_again_btn: Button,
