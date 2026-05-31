@@ -812,7 +812,17 @@ impl Scene for LevelScene {
         // Background music is loaded semi-dynamically from the assets folder.
         // so keep track of the ids we care about by reading the file names which
         // should be numeric:
-        self.bg_music_ids = audio.load_bg_music();
+        self.bg_music_ids = audio
+            .load_bg_music()
+            .into_iter()
+            .filter(|r| {
+                if let Err(error) = r {
+                    eprintln!("{}", error);
+                }
+                r.is_ok()
+            })
+            .map(|r| r.unwrap())
+            .collect();
     }
 
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {

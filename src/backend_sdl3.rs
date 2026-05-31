@@ -242,13 +242,13 @@ impl Audio for SDL3Sounds {
         self.music_by_id.insert(id, data);
         Ok(())
     }
-    fn load_bg_music(&mut self) -> Vec<MusicId> {
+    fn load_bg_music(&mut self) -> Vec<AudioResult<MusicId>> {
         let user_wav_folder = self.base_path.join("audio").join("cc-vocaloid");
         let mut ids = Vec::new();
-        if let Ok(results) =
+        if let Ok(globbed) =
             glob_directory(user_wav_folder, Some("*.wav"), GlobFlags::CASEINSENSITIVE)
         {
-            for path in &results {
+            for path in &globbed {
                 let filename = path.file_name();
                 if filename.is_none() {
                     continue;
@@ -257,8 +257,14 @@ impl Audio for SDL3Sounds {
                 let desired_id = filename[0..filename.len() - 4].parse::<usize>();
                 if desired_id.is_ok() {
                     let music_id = MusicId(desired_id.unwrap());
-                    ids.push(music_id);
-                    self.load_music(music_id);
+                    ids.push(self.load_music(music_id).and_then(|_| Ok(music_id)));
+                } else {
+                    let msg = format!(
+                        "cannot load music file {} please name it numerically in the order you want played",
+                        filename
+                    );
+                    let e = Box::<dyn Error>::from(msg);
+                    ids.push(Err(e));
                 }
             }
         }
