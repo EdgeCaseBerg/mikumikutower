@@ -73,8 +73,8 @@ impl Scene for GameOverScene {
         };
 
         audio.load_sfx(SFX_ID_BLIP);
-        audio.load_music(MUSIC_ID_MOON);
-        audio.load_music(MUSIC_ID_TETO);
+        let _ = audio.load_music(MUSIC_ID_MOON);
+        let _ = audio.load_music(MUSIC_ID_TETO);
     }
 
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {

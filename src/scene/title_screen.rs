@@ -79,7 +79,7 @@ impl Scene for TitleScene {
 
         audio.load_sfx(SFX_ID_BLIP);
         audio.load_sfx(SFX_ID_MEME);
-        audio.load_music(MUSIC_ID_PACHEBAL);
+        let _ = audio.load_music(MUSIC_ID_PACHEBAL);
     }
     fn update(&mut self, ticks: u32, game_context: &mut GameContext) {
         let layout = TitleScene::layout(&game_context);
