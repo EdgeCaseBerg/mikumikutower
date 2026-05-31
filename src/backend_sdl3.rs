@@ -150,17 +150,17 @@ impl SfxStream {
 }
 
 impl Audio for SDL3Sounds {
-    fn play_sfx(&mut self, id: SfxId) {
+    fn play_sfx(&mut self, id: SfxId) -> AudioResult<()> {
         // FUTURE CONSIDERATION: should we take this instant in from above?
         let now = Instant::now();
         let Some(sound_data) = self.sound_by_id.get(&id) else {
-            return;
+            return Ok(());
         };
         // find the bucket
         let bucket_key = to_hashable_spec(&sound_data.spec);
         let Some(bucket) = self.buckets.iter_mut().find(|b| b.spec == bucket_key) else {
-            eprintln!("No bucket found for spec {:?}", bucket_key);
-            return;
+            let err = format!("no bucket found for spec {:?}, ensure you called prepare after load_sfx", bucket_key);
+            return Err(Box::<dyn Error>::from(err));
         };
         let stream = if let Some(stream) = bucket.streams.iter_mut().find(|s| s.is_free(now)) {
             stream
@@ -168,22 +168,22 @@ impl Audio for SDL3Sounds {
             // All busy — steal the one that will free soonest
             bucket.streams.iter_mut().min_by_key(|s| s.free_at).unwrap()
         };
-        // TODO return result
-        let _ = stream.claim(&sound_data, now);
+        stream.claim(&sound_data, now)?;
+        Ok(())
     }
-    fn load_sfx(&mut self, sound_id: SfxId) {
+    fn load_sfx(&mut self, sound_id: SfxId) -> AudioResult<()> {
         if !self.sound_by_id.get(&sound_id).is_none() {
-            return;
+            return Ok(());
         }
 
-        // FUTURE ENHANCEMENT I suppose make things turn results and ? it all.
         let path = self.base_path.join(sfx_id_to_relative_path(sound_id));
-        let spec = AudioSpecWAV::load_wav(path).expect("could not load spec from path");
+        let spec = AudioSpecWAV::load_wav(path)?;
         let data = SoundData {
             duration: spec_duration(&spec),
             spec,
         };
         self.sound_by_id.insert(sound_id, data);
+        Ok(())
     }
     fn play_music(&mut self, id: MusicId) -> Result<(), Box<dyn std::error::Error>> {
         let Some(sound_data) = self.music_by_id.get(&id) else {
