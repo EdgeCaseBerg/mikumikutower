@@ -11,11 +11,11 @@ use crate::renderer::{Color, RenderCommand, Renderer};
 
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
+use std::error::Error;
 use std::path::PathBuf;
 use std::rc::Rc;
 use std::time::Duration;
 use std::time::Instant;
-use std::error::Error;
 
 use sdl3::AudioSubsystem;
 use sdl3::EventPump;
@@ -262,11 +262,15 @@ impl Audio for SDL3Sounds {
         }
         ids
     }
-    fn music_duration_seconds(&self, id: MusicId) -> Duration {
+    fn music_duration_seconds(&self, id: MusicId) -> Result<Duration, Box<dyn Error>> {
         let Some(sound_data) = self.music_by_id.get(&id) else {
-            return Duration::from_secs_f64(0.0);
+            let err = format!(
+                "Could not compute duration of music with id {}, music not loaded.",
+                id.0
+            );
+            return Err(Box::<dyn Error>::from(err));
         };
-        spec_duration(&sound_data.spec)
+        Ok(spec_duration(&sound_data.spec))
     }
 
     fn prepare(&mut self) {

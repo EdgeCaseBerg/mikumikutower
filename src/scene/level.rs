@@ -732,6 +732,10 @@ impl LevelScene {
         if self.bg_music_ids.len() <= 0 {
             return;
         }
+        let backoff = ReadyState::Cooldown {
+            wait_for: 60, // roughly 60 ticks per second.
+            ticks_waited: 0,
+        };
         match self.time_to_play_next_song {
             None => {
                 // Initial load, just start playing.
@@ -739,8 +743,14 @@ impl LevelScene {
                 self.time_to_play_next_song = game_context.audio.as_mut().map(|audio| {
                     // do this in the map so that if we cant load the audio we dont set the now playing
                     self.now_playing = Some(0);
-                    let duration = audio.music_duration_seconds(music_id).as_secs();
-                    let _ = audio.play_music(music_id);
+
+                    let Ok(duration) = audio.music_duration_seconds(music_id) else {
+                        return backoff;
+                    };
+                    let duration = duration.as_secs();
+                    let Ok(_) = audio.play_music(music_id) else {
+                        return backoff;
+                    };
                     ReadyState::Cooldown {
                         wait_for: duration as u32 * 60, // roughly 60 ticks per second.
                         ticks_waited: 0,
@@ -757,8 +767,13 @@ impl LevelScene {
                         self.time_to_play_next_song = game_context.audio.as_mut().map(|audio| {
                             // do this in the map so that if we cant load the audio we dont set the now playing
                             self.now_playing = Some(next_idx);
-                            let duration = audio.music_duration_seconds(music_id).as_secs();
-                            let _ = audio.play_music(music_id);
+                            let Ok(duration) = audio.music_duration_seconds(music_id) else {
+                                return backoff;
+                            };
+                            let duration = duration.as_secs();
+                            let Ok(_) = audio.play_music(music_id) else {
+                                return backoff;
+                            };
                             ReadyState::Cooldown {
                                 wait_for: duration as u32 * 60, // roughly 60 ticks per second.
                                 ticks_waited: 0,
