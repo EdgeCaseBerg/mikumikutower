@@ -159,7 +159,10 @@ impl Audio for SDL3Sounds {
         // find the bucket
         let bucket_key = to_hashable_spec(&sound_data.spec);
         let Some(bucket) = self.buckets.iter_mut().find(|b| b.spec == bucket_key) else {
-            let err = format!("no bucket found for spec {:?}, ensure you called prepare after load_sfx", bucket_key);
+            let err = format!(
+                "no bucket found for spec {:?}, ensure you called prepare after load_sfx",
+                bucket_key
+            );
             return Err(Box::<dyn Error>::from(err));
         };
         let stream = if let Some(stream) = bucket.streams.iter_mut().find(|s| s.is_free(now)) {

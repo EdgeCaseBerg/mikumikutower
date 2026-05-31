@@ -96,7 +96,7 @@ impl Scene for GameOverScene {
         if self.try_again_btn.clicked && game_context.next_scene.is_none() {
             game_context.queue_level();
             game_context.audio.as_mut().map(|audio| {
-                let _ =audio.play_sfx(SFX_ID_BLIP);
+                let _ = audio.play_sfx(SFX_ID_BLIP);
             });
             self.try_again_btn.clicked = false;
         }
@@ -104,7 +104,7 @@ impl Scene for GameOverScene {
         if self.give_up_btn.clicked && game_context.next_scene.is_none() {
             game_context.shutdown();
             game_context.audio.as_mut().map(|audio| {
-                let _ =audio.play_sfx(SFX_ID_BLIP);
+                let _ = audio.play_sfx(SFX_ID_BLIP);
             });
             self.give_up_btn.clicked = false;
         }
