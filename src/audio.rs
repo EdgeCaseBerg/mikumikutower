@@ -11,5 +11,5 @@ pub trait Audio {
     fn load_music(&mut self, id: MusicId) -> AudioResult<()>;
     fn load_bg_music(&mut self) -> Vec<AudioResult<MusicId>>;
     fn music_duration_seconds(&self, id: MusicId) -> AudioResult<Duration>;
-    fn prepare(&mut self);
+    fn prepare(&mut self) -> Vec<AudioResult<()>>;
 }

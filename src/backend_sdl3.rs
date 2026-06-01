@@ -151,7 +151,6 @@ impl SfxStream {
 
 impl Audio for SDL3Sounds {
     fn play_sfx(&mut self, id: SfxId) -> AudioResult<()> {
-        // FUTURE CONSIDERATION: should we take this instant in from above?
         let now = Instant::now();
         let Some(sound_data) = self.sound_by_id.get(&id) else {
             return Ok(());
@@ -284,7 +283,7 @@ impl Audio for SDL3Sounds {
         Ok(spec_duration(&sound_data.spec))
     }
 
-    fn prepare(&mut self) {
+    fn prepare(&mut self) -> Vec<AudioResult<()>> {
         let mut specs_to_prepare: HashSet<Spec> = self
             .sound_by_id
             .values()
@@ -307,31 +306,37 @@ impl Audio for SDL3Sounds {
             exists
         });
 
+        let mut stream_failures = vec![];
         let ctx = &mut *self.context.borrow_mut();
         for spec_needs_bucket in specs_to_prepare.difference(&already_exist) {
             let mut streams = Vec::with_capacity(self.poolsize);
             for _ in 0..self.poolsize {
                 let device = ctx.audio.default_playback_device();
-                let stream = SfxStream {
-                    stream: device
-                        .open_device_stream(
-                            Some(AudioSpec {
-                                freq: Some(spec_needs_bucket.freq),
-                                channels: Some(spec_needs_bucket.channels),
-                                format: Some(spec_needs_bucket.format),
-                            })
-                            .as_ref(),
-                        )
-                        .expect("could not open logical device for spec"),
-                    free_at: None,
-                };
-                streams.push(stream);
+                let stream = device.open_device_stream(
+                    Some(AudioSpec {
+                        freq: Some(spec_needs_bucket.freq),
+                        channels: Some(spec_needs_bucket.channels),
+                        format: Some(spec_needs_bucket.format),
+                    })
+                    .as_ref(),
+                );
+                if let Ok(stream) = stream {
+                    let stream = SfxStream {
+                        stream,
+                        free_at: None,
+                    };
+                    streams.push(stream);
+                } else {
+                    // "could not open logical device for spec"
+                    stream_failures.push(stream.map(|_| ()).map_err(|e| e.into()));
+                }
             }
             self.buckets.push(Bucket {
                 spec: *spec_needs_bucket,
                 streams,
             })
         }
+        stream_failures
     }
 }
 
@@ -462,7 +467,7 @@ impl BackendEventLoop for EventLoopSDL3 {
         // initialize the audio pool if the scene has queued things up
         let audio = game_context.audio.as_mut();
         if let Some(audio) = audio {
-            audio.prepare();
+            let _ = audio.prepare();
         }
 
         'running: loop {
