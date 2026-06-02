@@ -48,7 +48,7 @@ pub struct SDL3Context {
     // BEFORE the canvas is dropped
     textures: SDL3Textures,
     window_canvas: WindowCanvas,
-    video: VideoSubsystem,
+    _video: VideoSubsystem,
     audio: AudioSubsystem,
 }
 
@@ -442,7 +442,7 @@ impl Backend for BackendSDL3 {
         let e = EventLoopSDL3 {
             event_pump,
             context: Rc::new(RefCell::new(SDL3Context {
-                video: video_subsystem,
+                _video: video_subsystem,
                 window_canvas: canvas,
                 textures,
                 audio: audio_subsystem,
