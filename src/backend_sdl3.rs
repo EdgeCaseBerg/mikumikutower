@@ -35,6 +35,7 @@ use sdl3::render::Texture;
 use sdl3::render::TextureCreator;
 use sdl3::render::WindowCanvas;
 use sdl3::video::WindowContext;
+use sdl3::mixer::Mixer;
 
 pub struct BackendSDL3 {
     sdl: Sdl,
@@ -50,6 +51,7 @@ pub struct SDL3Context {
     window_canvas: WindowCanvas,
     _video: VideoSubsystem,
     audio: AudioSubsystem,
+    mixer: Mixer,
 }
 
 struct SoundData {
@@ -420,6 +422,7 @@ impl Backend for BackendSDL3 {
 
         let video_subsystem = self.sdl.video().expect("failed to get video context");
         let audio_subsystem = self.sdl.audio().expect("failed to get audio context");
+        let mixer_subsystem = Mixer::open_device(None).expect("failed to create mixer context");
 
         // Side note, window to borderless and all that would need to re-create window and derived canvases
         let window = video_subsystem
@@ -446,6 +449,7 @@ impl Backend for BackendSDL3 {
                 window_canvas: canvas,
                 textures,
                 audio: audio_subsystem,
+                mixer: mixer_subsystem,
             })),
         };
         Box::new(e)
