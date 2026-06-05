@@ -30,12 +30,13 @@ use sdl3::filesystem::get_current_directory;
 use sdl3::filesystem::{GlobFlags, glob_directory};
 use sdl3::image::LoadTexture;
 use sdl3::keyboard::Keycode;
+use sdl3::mixer::Audio as MixerAudio;
+use sdl3::mixer::Mixer;
 use sdl3::mouse::MouseButton;
 use sdl3::render::Texture;
 use sdl3::render::TextureCreator;
 use sdl3::render::WindowCanvas;
 use sdl3::video::WindowContext;
-use sdl3::mixer::Mixer;
 
 pub struct BackendSDL3 {
     sdl: Sdl,
@@ -77,19 +78,12 @@ struct Spec {
     format: sdl3::audio::AudioFormat,
 }
 
-enum MusicTrack {
-    A,
-    B,
-}
-
 struct SDL3Sounds {
     sound_by_id: HashMap<SfxId, SoundData>,
-    music_by_id: HashMap<MusicId, SoundData>,
+    music_by_id: HashMap<MusicId, MixerAudio>,
     buckets: Vec<Bucket>,
     poolsize: usize,
     base_path: PathBuf,
-    current_track: MusicTrack,
-    music_streams: [Option<SfxStream>; 2],
     context: Rc<RefCell<SDL3Context>>,
 }
 
@@ -126,8 +120,6 @@ impl SDL3Sounds {
             music_by_id: HashMap::new(),
             poolsize: game_options.audio_pool_size,
             base_path,
-            current_track: MusicTrack::A,
-            music_streams: [None, None],
             context,
         }
     }
@@ -190,45 +182,14 @@ impl Audio for SDL3Sounds {
         Ok(())
     }
     fn play_music(&mut self, id: MusicId) -> Result<(), Box<dyn std::error::Error>> {
-        let Some(sound_data) = self.music_by_id.get(&id) else {
+        let Some(mixer_audio) = self.music_by_id.get(&id) else {
             let err = format!("Could not play music with id {}, music not loaded.", id.0);
             return Err(Box::<dyn Error>::from(err));
         };
-        let (play_index, pause_index) = match self.current_track {
-            MusicTrack::A => (0, 1),
-            MusicTrack::B => (1, 0),
-        };
-        let now = Instant::now();
-        self.music_streams[play_index] = Some({
-            let ctx = &mut *self.context.borrow_mut();
-            let device = ctx.audio.default_playback_device();
-            let mut stream = SfxStream {
-                stream: device
-                    .open_device_stream(
-                        Some(AudioSpec {
-                            freq: Some(sound_data.spec.freq),
-                            channels: Some(sound_data.spec.channels.into()),
-                            format: Some(sound_data.spec.format),
-                        })
-                        .as_ref(),
-                    )
-                    .expect("could not open logical device for spec"),
-                free_at: Some(now),
-            };
-            stream.claim(&sound_data, now)?;
-            stream
-        });
 
-        match &mut self.music_streams[pause_index] {
-            None => {}
-            Some(SfxStream { stream, .. }) => {
-                let _ = stream.pause();
-            }
-        }
-        self.current_track = match self.current_track {
-            MusicTrack::A => MusicTrack::B,
-            MusicTrack::B => MusicTrack::A,
-        };
+        let ctx = &mut *self.context.borrow_mut();
+        ctx.mixer.pause_all()?;
+        ctx.mixer.play_audio(&mixer_audio)?;
         Ok(())
     }
 
@@ -238,12 +199,9 @@ impl Audio for SDL3Sounds {
             return Ok(());
         }
         let path = self.base_path.join(music_id_to_relative_path(id));
-        let spec = AudioSpecWAV::load_wav(path)?;
-        let data = SoundData {
-            duration: spec_duration(&spec),
-            spec,
-        };
-        self.music_by_id.insert(id, data);
+        let ctx = &mut *self.context.borrow_mut();
+        let audio = ctx.mixer.load_audio(path, true)?;
+        self.music_by_id.insert(id, audio);
         Ok(())
     }
     fn load_bg_music(&mut self) -> Vec<AudioResult<MusicId>> {
@@ -275,25 +233,23 @@ impl Audio for SDL3Sounds {
         ids
     }
     fn music_duration_seconds(&self, id: MusicId) -> AudioResult<Duration> {
-        let Some(sound_data) = self.music_by_id.get(&id) else {
+        let Some(mixer_audio) = self.music_by_id.get(&id) else {
             let err = format!(
                 "Could not compute duration of music with id {}, music not loaded.",
                 id.0
             );
             return Err(Box::<dyn Error>::from(err));
         };
-        Ok(spec_duration(&sound_data.spec))
+        let duration = mixer_audio.frames_to_ms(mixer_audio.duration());
+        Ok(Duration::from_millis(duration.try_into()?))
     }
 
     fn prepare(&mut self) -> Vec<AudioResult<()>> {
-        let mut specs_to_prepare: HashSet<Spec> = self
+        let specs_to_prepare: HashSet<Spec> = self
             .sound_by_id
             .values()
             .map(|v| to_hashable_spec(&v.spec))
             .collect();
-        for spec in self.music_by_id.values().map(|v| to_hashable_spec(&v.spec)) {
-            specs_to_prepare.insert(spec);
-        }
 
         // Clean out anything we DONT need anymore:
         let mut already_exist = HashSet::new();
