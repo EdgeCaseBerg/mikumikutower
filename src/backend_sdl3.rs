@@ -123,10 +123,6 @@ impl SDL3Sounds {
             context,
         }
     }
-    // TODO: explain in blog about how annoying it is that I cant reuse it
-    // fn get_sound_buffer(&self, sound_id: SfxId) -> Option<&SoundData> {
-    //     self.sound_by_id.get(&sound_id)
-    // }
 }
 
 impl SfxStream {
