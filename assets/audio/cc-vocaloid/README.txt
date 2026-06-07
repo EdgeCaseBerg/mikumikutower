@@ -7,8 +7,11 @@ on youtube to follow the artists and enjoy their work.
 OwO by Nine Aetharia
 https://youtu.be/2ZY27rc5l5I
 
-Note that the program will load .wav files from this folder, 
-so if you'd like to listen to your own music while you game,
-just drop the files in here. MP3s will not work, the game
-only loads .wav and will load them if you name the file a number
-1 and up (up to 999).
+Note that the program will load files from this folder based
+on the supported audio formats csv in the assets folder.
+Assuming that SDL3 can decode your file, it will be able to 
+load up whatever extensions you toss in there that it can play.
+So if you'd like to listen to your own music while you game,
+just drop the files in here. 
+The only thing you need to do is rename the file to a number
+like 1.wav, 2.mp3, etc and this will work up to 999. Have fun.

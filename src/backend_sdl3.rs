@@ -12,6 +12,7 @@ use crate::renderer::{Color, RenderCommand, Renderer};
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
+use std::fs;
 use std::path::PathBuf;
 use std::rc::Rc;
 use std::time::Duration;
@@ -201,21 +202,73 @@ impl Audio for SDL3Sounds {
         Ok(())
     }
     fn load_bg_music(&mut self) -> Vec<AudioResult<MusicId>> {
+        fn print_available_decoders() {
+            let n = sdl3::mixer::get_num_audio_decoders();
+            println!("available audio decoders: {n}");
+            for i in 0..n {
+                if let Some(name) = sdl3::mixer::get_audio_decoder(i) {
+                    println!("  decoder {i} => {name}");
+                }
+            }
+        }
+
+        let supported_extensions_file = self.base_path.join("supported-audio-formats.csv");
+        let read_result = fs::read_to_string(supported_extensions_file);
+        let Ok(full_csv) = read_result else {
+            return vec![Err(read_result.unwrap_err().into())];
+        };
+        let allowed_extensions: HashSet<String> =
+            full_csv.split(",").map(|s| s.trim().to_string()).collect();
+
         let user_wav_folder = self.base_path.join("audio").join("cc-vocaloid");
         let mut ids = Vec::new();
-        if let Ok(globbed) =
-            glob_directory(user_wav_folder, Some("*.wav"), GlobFlags::CASEINSENSITIVE)
+        if let Ok(globbed) = glob_directory(&user_wav_folder, Some("*"), GlobFlags::CASEINSENSITIVE)
         {
             for path in &globbed {
                 let filename = path.file_name();
                 if filename.is_none() {
                     continue;
                 }
-                let filename = filename.unwrap().to_str().unwrap();
+                let Some(filename) = filename.unwrap().to_str() else {
+                    continue;
+                };
+
+                if filename == "README.txt" {
+                    continue;
+                }
+
+                let Some(extension) = path.extension().map(|os_str| os_str.to_str()).flatten()
+                else {
+                    continue;
+                };
+                if !allowed_extensions.contains(extension) {
+                    eprintln!(
+                        "cannot load {:?} file type not supported by available decoders or extension list, see supported-audio-formats.csv and decoder list below",
+                        filename
+                    );
+                    print_available_decoders();
+                    continue;
+                }
+
                 let desired_id = filename[0..filename.len() - 4].parse::<usize>();
                 if desired_id.is_ok() {
                     let music_id = MusicId(desired_id.unwrap());
-                    ids.push(self.load_music(music_id).and_then(|_| Ok(music_id)));
+                    if !self.music_by_id.get(&music_id).is_none() {
+                        // Tricky tricky, make sure you put the music id if we're re-loading the level scene
+                        // and generating the list of music ids again. Just because we don't need to load the
+                        // music audio into the hashmap, doesn't mean we don't need to return the id here!
+                        ids.push(Ok(music_id));
+                    }
+                    let ctx = &mut *self.context.borrow_mut();
+                    match ctx.mixer.load_audio(&user_wav_folder.join(path), true) {
+                        Ok(audio) => {
+                            self.music_by_id.insert(music_id, audio);
+                            ids.push(Ok(music_id));
+                        }
+                        Err(e) => {
+                            ids.push(Err(e.into()));
+                        }
+                    }
                 } else {
                     let msg = format!(
                         "cannot load music file {} please name it numerically in the order you want played",
@@ -375,7 +428,6 @@ impl Backend for BackendSDL3 {
         let video_subsystem = self.sdl.video().expect("failed to get video context");
         let audio_subsystem = self.sdl.audio().expect("failed to get audio context");
         let mixer_subsystem = Mixer::open_device(None).expect("failed to create mixer context");
-
         // Side note, window to borderless and all that would need to re-create window and derived canvases
         let window = video_subsystem
             .window(
