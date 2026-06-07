@@ -7,6 +7,10 @@ on youtube to follow the artists and enjoy their work.
 OwO by Nine Aetharia
 https://youtu.be/2ZY27rc5l5I
 
+2.
+Scheming Weasel faster by Kevin MacLeod © 2006 Kevin MacLeod
+https://youtu.be/y4zXHvaQ7Ng
+
 Note that the program will load files from this folder based
 on the supported audio formats csv in the assets folder.
 Assuming that SDL3 can decode your file, it will be able to 
