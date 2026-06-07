@@ -63,7 +63,7 @@ pub const MUSIC_ID_MOON: MusicId = MusicId(1000);
 pub const MUSIC_ID_QUIT: MusicId = MusicId(1001);
 pub const MUSIC_ID_TETO: MusicId = MusicId(1002);
 
-// Enable loading arbitrary songs via ids above 1
+// Enable loading arbitrary songs via ids above 1 (wav only)
 pub fn music_id_to_relative_path(id: MusicId) -> PathBuf {
     let base = PathBuf::new().join("audio");
     let wavs = PathBuf::new().join("audio").join("cc-vocaloid");
