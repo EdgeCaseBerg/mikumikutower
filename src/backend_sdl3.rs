@@ -250,7 +250,7 @@ impl Audio for SDL3Sounds {
                     continue;
                 }
 
-                let desired_id = filename[0..filename.len() - 4].parse::<usize>();
+                let desired_id = filename[0..filename.len() - extension.len() - 1].parse::<usize>();
                 if desired_id.is_ok() {
                     let music_id = MusicId(desired_id.unwrap());
                     if !self.music_by_id.get(&music_id).is_none() {
