@@ -72,6 +72,9 @@ pub struct EventLoopWasm {}
 
 impl BackendEventLoop for EventLoopWasm {
     fn run(&mut self, game: &mut Game, game_context: &mut GameContext) {
+        // Look it's wasm!
+        web_sys::console::log_1(&"hello wasm".into());
+
         let scene = game.scene.as_mut();
         if let Some(scene) = scene {
             scene.init(game_context);
