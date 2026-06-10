@@ -5,8 +5,27 @@ On linux:
 ```
 sudo apt install libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev
 ```
+and if you'll be targeting wasm:
+```
+rustup target add wasm32-unknown-unknown    
+```
+
 
 On other platforms figure it out yourself here https://github.com/libsdl-org/SDL/blob/main/INSTALL.md
+
+## Build
+
+For native:
+
+```
+cargo build
+```
+
+For web via wasm:
+
+```
+cargo build --target wasm32-unknown-unknown
+```
 
 
 ## Side notes about the game

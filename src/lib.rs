@@ -1,7 +1,13 @@
 pub mod asset_loader;
 pub mod audio;
 pub mod backend;
+
+#[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
 pub mod backend_sdl3;
+
+#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+pub mod backend_wasm;
+
 pub mod constants;
 pub mod font;
 pub mod game;
@@ -18,6 +24,7 @@ use crate::game_options::GameOptions;
 use crate::scene::Scene;
 use crate::scene::title_screen::TitleScene;
 
+#[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
 extern crate sdl3;
 
 #[derive(Debug, Clone, Copy)]
