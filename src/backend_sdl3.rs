@@ -2,6 +2,7 @@ use crate::Rect;
 use crate::asset_loader::AssetLoader;
 use crate::audio::{Audio, AudioResult};
 use crate::backend::*;
+use crate::clock::Clock;
 use crate::constants::*;
 use crate::constants::{MusicId, SfxId};
 use crate::game::Game;
@@ -421,7 +422,29 @@ impl BackendSDL3 {
     }
 }
 
+struct StandardClock {
+    start: Instant,
+}
+
+impl StandardClock {
+    fn new() -> StandardClock {
+        Self {
+            start: Instant::now(),
+        }
+    }
+}
+
+impl Clock for StandardClock {
+    fn elapsed_since_start(&self) -> u128 {
+        self.start.elapsed().as_nanos()
+    }
+}
+
 impl Backend for BackendSDL3 {
+    fn create_clock(&self) -> Box<dyn Clock> {
+        Box::new(StandardClock::new())
+    }
+
     fn create_event_loop(&self, game_options: &GameOptions) -> Box<dyn BackendEventLoop> {
         let event_pump = self.sdl.event_pump().unwrap();
 

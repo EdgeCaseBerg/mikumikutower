@@ -1,5 +1,6 @@
 use crate::asset_loader::AssetLoader;
 use crate::audio::Audio;
+use crate::clock::Clock;
 use crate::renderer::Color;
 use crate::renderer::Renderer;
 use crate::scene::Scene;
