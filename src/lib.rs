@@ -1,6 +1,7 @@
 pub mod asset_loader;
 pub mod audio;
 pub mod backend;
+pub mod clock;
 
 #[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
 pub mod backend_sdl3;
@@ -133,10 +134,12 @@ pub fn run(game_options: &GameOptions, game: &mut Game) {
     let renderer = event_loop.new_renderer(game_options);
     let asset_loader = event_loop.create_asset_loader(game_options);
     let audio = event_loop.create_audio(game_options);
+    let clock = backend.create_clock();
     game_context.screen_size = (game_options.window_width, game_options.window_height);
     game_context.renderer = Some(renderer);
     game_context.asset_loader = Some(asset_loader);
     game_context.audio = Some(audio);
+    game_context.clock = Some(clock);
     game.scene = Some(Box::new(TitleScene::default()));
     event_loop.run(game, &mut game_context);
 }

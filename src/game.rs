@@ -9,10 +9,8 @@ use crate::scene::level::LevelScene;
 use crate::scene::shutting_down::ShuttingDownScene;
 
 use std::time::Duration;
-use std::time::Instant;
 
 pub struct Game {
-    start_time: Instant,
     // counters to track game updates on a fixed interval with catch up
     prev_tick: u128,
     next_tick: u128,
@@ -64,6 +62,7 @@ pub struct GameContext {
     pub asset_loader: Option<Box<dyn AssetLoader>>,
     pub audio: Option<Box<dyn Audio>>,
     pub shutdown_flag: bool,
+    pub clock: Option<Box<dyn Clock>>,
 }
 
 impl Default for GameContext {
@@ -76,6 +75,7 @@ impl Default for GameContext {
             asset_loader: None,
             audio: None,
             shutdown_flag: false,
+            clock: None,
         }
     }
 }
@@ -97,7 +97,6 @@ impl GameContext {
 impl Game {
     pub fn new() -> Self {
         Game {
-            start_time: Instant::now(),
             prev_tick: 0,
             next_tick: 0,
             tick_loops: 0,
@@ -119,7 +118,12 @@ impl Game {
         let ns_per_update = 1_000_000_000 / 60;
         // completely arbitrary but would control how much lag is acceptable
         let max_loops_per_update = 10;
-        let current = self.start_time.elapsed().as_nanos();
+        let clock = game_context
+            .clock
+            .as_ref()
+            .expect("a clock must be initialized to update");
+
+        let current = clock.elapsed_since_start();
         let elapsed = current - self.prev_tick;
         self.prev_tick = current;
         self.next_tick = current + ns_per_update;
@@ -131,7 +135,7 @@ impl Game {
         }
         if self.tick_loops == max_loops_per_update {
             eprintln!("Frame skipping detected, attempting to correct by skipping frames ahead");
-            self.prev_tick = self.start_time.elapsed().as_nanos();
+            self.prev_tick = clock.elapsed_since_start();
             self.next_tick = self.prev_tick + ns_per_update;
             self.tick_loops = 0;
         }
@@ -150,8 +154,12 @@ impl Game {
 
         // TODO: Move to shared state assuming we'd update game and render per update the same.
         let ns_per_update = 1_000_000_000 / 60;
+        let clock = game_context
+            .clock
+            .as_ref()
+            .expect("a clock must be initialized to update");
 
-        let current = self.start_time.elapsed().as_nanos();
+        let current = clock.elapsed_since_start();
 
         // If we're already past the time to draw, then align the next tick to the current time
         if current > self.next_draw_tick + ns_per_update {
@@ -159,7 +167,7 @@ impl Game {
         }
 
         // if we're not past the time to draw, advance by update rate until it's time to render.
-        while self.start_time.elapsed().as_nanos() >= self.next_draw_tick {
+        while clock.elapsed_since_start() >= self.next_draw_tick {
             self.next_draw_tick += ns_per_update;
             self.should_draw = true;
         }
