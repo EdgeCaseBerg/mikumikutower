@@ -15,5 +15,6 @@ web-sys = { version = "0.3", features = [
 	"HtmlCanvasElement",
 	"CanvasRenderingContext2d",
 	"console",
+	"Performance",
 ]}
 console_error_panic_hook = "0.1"
