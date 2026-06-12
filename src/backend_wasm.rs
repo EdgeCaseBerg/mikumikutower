@@ -8,10 +8,10 @@ use crate::game::Game;
 use crate::game::GameContext;
 use crate::game_options::GameOptions;
 use crate::renderer::{Color, RenderCommand, Renderer};
+use std::rc::Rc;
+use std::time::Duration; // this is probably going to bite us later.
 
-use std::time::Duration;
-
-pub struct BackendWasm {}
+use wasm_bindgen::JsCast;
 
 pub struct WasmSounds {}
 
@@ -90,9 +90,46 @@ impl Clock for WasmClock {
     }
 }
 
+fn window() -> web_sys::Window {
+    web_sys::window().expect("no global `window` exists")
+}
+
+fn document() -> web_sys::Document {
+    window()
+        .document()
+        .expect("should have a document on window")
+}
+
+fn body() -> web_sys::HtmlElement {
+    document().body().expect("document should have a body")
+}
+
+pub struct BackendWasm {
+    canvas: Rc<web_sys::HtmlCanvasElement>,
+}
+
 impl BackendWasm {
-    pub fn new(_game_options: &GameOptions) -> Self {
-        BackendWasm {}
+    pub fn new(game_options: &GameOptions) -> Self {
+        let document = document();
+        let canvas = document
+            .create_element("canvas")
+            .expect("could not create canvas")
+            .dyn_into::<web_sys::HtmlCanvasElement>()
+            .expect("could not dyn_into HtmlCanvasElement");
+        body()
+            .append_child(&canvas)
+            .expect("could not add canvas to body");
+        canvas.set_width(game_options.window_width);
+        canvas.set_height(game_options.window_height);
+        canvas
+            .style()
+            .set_property("border", "solid")
+            .expect("cant style canvas");
+        let canvas = Rc::new(canvas);
+        BackendWasm {
+            canvas,
+            // I'll probably need to add canvas or an Rc<canvas> in here...
+        }
     }
 }
 
