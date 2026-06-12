@@ -140,6 +140,7 @@ impl BackendEventLoop for EventLoopWasm {
             // break; TODO restore break or something?
             return;
         }
+        web_sys::console::log_1(&"goodbye wasm".into());
     }
 
     fn new_renderer(&self, _game_options: &GameOptions) -> Box<dyn Renderer> {
