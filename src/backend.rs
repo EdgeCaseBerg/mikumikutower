@@ -17,8 +17,6 @@ pub trait BackendEventLoop {
 }
 
 pub fn init_backend(game_options: &GameOptions) -> Box<dyn Backend> {
-    // There is only one backend to init right now but this is where we could
-    // do fun #if(config) type things in the future if need be!
     #[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
     {
         use crate::backend_sdl3::BackendSDL3;

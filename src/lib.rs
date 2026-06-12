@@ -140,3 +140,17 @@ pub fn run(game_options: &GameOptions, game: &mut Game) {
     game.scene = Some(Box::new(TitleScene::default()));
     event_loop.run(game, &mut game_context);
 }
+
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen(start)]
+pub fn start() {
+    console_error_panic_hook::set_once();
+
+    let options = GameOptions::default();
+    let mut game = Game::new();
+
+    run(&options, &mut game);
+}

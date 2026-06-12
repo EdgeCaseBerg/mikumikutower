@@ -7,7 +7,9 @@ sudo apt install libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-d
 ```
 and if you'll be targeting wasm:
 ```
-rustup target add wasm32-unknown-unknown    
+rustup target add wasm32-unknown-unknown
+cargo install wasm-bindgen-cli
+
 ```
 
 
@@ -25,6 +27,7 @@ For web via wasm:
 
 ```
 cargo build --target wasm32-unknown-unknown
+wasm-bindgen target/wasm32-unknown-unknown/debug/mikumikutower.wasm --out-dir web/pkg --target web
 ```
 
 
