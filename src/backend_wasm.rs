@@ -1,6 +1,7 @@
 use crate::asset_loader::AssetLoader;
 use crate::audio::{Audio, AudioResult};
 use crate::backend::*;
+use crate::clock::Clock;
 use crate::constants::*;
 use crate::constants::{MusicId, SfxId};
 use crate::game::Game;
@@ -55,6 +56,40 @@ impl AssetLoader for AssetLoaderWasm {
     fn ensure_texture_spritesheet_loaded(&mut self, _id: TextureId) {}
 }
 
+struct WasmClock {
+    start: u128,
+}
+
+fn milli_to_nano(milliseconds: f64) -> u128 {
+    let nanos = (((milliseconds as u64) % 1_000) as u128) * 1_000_000;
+    nanos
+}
+
+impl WasmClock {
+    fn new() -> Self {
+        let window = web_sys::window().expect("no browser window found");
+        let milliseconds = window
+            .performance()
+            .expect("no performance in browser defined")
+            .now();
+        let nanos = milli_to_nano(milliseconds);
+        WasmClock { start: nanos }
+    }
+}
+
+impl Clock for WasmClock {
+    fn elapsed_since_start(&self) -> u128 {
+        let window = web_sys::window().expect("no browser window found");
+        let now = window
+            .performance()
+            .expect("no performance in browser defined")
+            .now();
+        let now = milli_to_nano(now);
+        let nanos = now - self.start;
+        nanos
+    }
+}
+
 impl BackendWasm {
     pub fn new(_game_options: &GameOptions) -> Self {
         BackendWasm {}
@@ -62,6 +97,9 @@ impl BackendWasm {
 }
 
 impl Backend for BackendWasm {
+    fn create_clock(&self) -> Box<dyn Clock> {
+        Box::new(WasmClock::new())
+    }
     fn create_event_loop(&self, _game_options: &GameOptions) -> Box<dyn BackendEventLoop> {
         let e = EventLoopWasm {};
         Box::new(e)
