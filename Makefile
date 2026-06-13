@@ -15,3 +15,7 @@ native:
 
 clean:
 	rm -rf target/ web/
+
+doc:
+	cargo doc
+	cargo doc --target wasm32-unknown-unknown	
