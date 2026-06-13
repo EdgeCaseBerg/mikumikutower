@@ -489,10 +489,10 @@ pub struct EventLoopSDL3 {
 }
 
 impl BackendEventLoop for EventLoopSDL3 {
-    fn run(&mut self, game: &mut Game, game_context: &mut GameContext) {
+    fn run(&mut self, mut game: Game, mut game_context: GameContext) {
         let scene = game.scene.as_mut();
         if let Some(scene) = scene {
-            scene.init(game_context);
+            scene.init(&mut game_context);
         }
 
         // initialize the audio pool if the scene has queued things up
@@ -536,9 +536,9 @@ impl BackendEventLoop for EventLoopSDL3 {
                     _ => {}
                 }
             }
-            game.update(game_context);
+            game.update(&mut game_context);
             if let Some(mut next_scene) = game_context.next_scene.take() {
-                next_scene.init(game_context);
+                next_scene.init(&mut game_context);
                 game.scene = Some(next_scene);
                 game.reset_for_next_scene();
                 let audio = game_context.audio.as_mut();
@@ -546,7 +546,7 @@ impl BackendEventLoop for EventLoopSDL3 {
                     audio.prepare();
                 }
             }
-            game.draw(game_context);
+            game.draw(&mut game_context);
             if game_context.shutdown_flag {
                 break;
             }

@@ -221,54 +221,42 @@ pub struct EventLoopWasm {
 }
 
 impl BackendEventLoop for EventLoopWasm {
-    fn run(&mut self, game: &mut Game, game_context: &mut GameContext) {
-        // Look it's wasm!
-        web_sys::console::log_1(&"hello wasm".into());
-
-        let scene = game.scene.as_mut();
-        if let Some(scene) = scene {
-            scene.init(game_context);
-        }
-
-        // initialize the audio pool if the scene has queued things up
-        let audio = game_context.audio.as_mut();
-        if let Some(audio) = audio {
-            let _ = audio.prepare();
-        }
-
-        // TODO: this is where we need to do the closure callback dance.
-        game.update(game_context);
-        if let Some(mut next_scene) = game_context.next_scene.take() {
-            next_scene.init(game_context);
-            game.scene = Some(next_scene);
-            game.reset_for_next_scene();
-            let audio = game_context.audio.as_mut();
-            if let Some(audio) = audio {
-                audio.prepare();
-            }
-        }
-        game.draw(game_context);
-        if game_context.shutdown_flag {
-            // break; TODO restore break or something?
-            return;
-        }
-        web_sys::console::log_1(&"hello wasm".into());
+    fn run(&mut self, mut game: Game, mut game_context: GameContext) {
+        web_sys::console::log_1(&"starting game loop".into());
 
         let self_referencing_function: Rc<RefCell<Option<Closure<dyn FnMut()>>>> =
             Rc::new(RefCell::new(None));
         let srf_handle = self_referencing_function.clone();
-
-        let mut i = 0;
         let closure =
             Closure::wrap(Box::new(move || {
-                if i > 300 {
-                    body().set_text_content(Some("All done!"));
+                web_sys::console::log_1(&"frame!".into());
+                let scene = game.scene.as_mut();
+                if let Some(scene) = scene {
+                    scene.init(&mut game_context);
+                }
+
+                // initialize the audio pool if the scene has queued things up
+                let audio = game_context.audio.as_mut();
+                if let Some(audio) = audio {
+                    let _ = audio.prepare();
+                }
+
+                // TODO: this is where we need to do the closure callback dance.
+                game.update(&mut game_context);
+                if let Some(mut next_scene) = game_context.next_scene.take() {
+                    next_scene.init(&mut game_context);
+                    game.scene = Some(next_scene);
+                    game.reset_for_next_scene();
+                    let audio = game_context.audio.as_mut();
+                    if let Some(audio) = audio {
+                        audio.prepare();
+                    }
+                }
+                game.draw(&mut game_context);
+                if game_context.shutdown_flag {
                     return;
                 }
 
-                // Set the body's text content to how many times this
-                // requestAnimationFrame callback has fired.
-                i += 1;
                 request_animation_frame(srf_handle.borrow().as_ref().expect(
                     "closure dropped before expected self referenced callback expected it",
                 ));

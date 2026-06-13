@@ -12,7 +12,7 @@ pub trait Backend {
 }
 
 pub trait BackendEventLoop {
-    fn run(&mut self, game: &mut Game, game_context: &mut GameContext);
+    fn run(&mut self, game: Game, game_context: GameContext);
     fn new_renderer(&self, game_options: &GameOptions) -> Box<dyn Renderer>;
     fn create_asset_loader(&self, game_options: &GameOptions) -> Box<dyn AssetLoader>;
     fn create_audio(&self, game_options: &GameOptions) -> Box<dyn Audio>;
