@@ -66,8 +66,7 @@ struct WasmClock {
 }
 
 fn milli_to_nano(milliseconds: f64) -> u128 {
-    let nanos = (((milliseconds as u64) % 1_000) as u128) * 1_000_000;
-    nanos
+    (milliseconds * 1_000_000.0) as u128
 }
 
 impl WasmClock {
