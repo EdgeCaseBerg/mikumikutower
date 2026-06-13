@@ -92,6 +92,9 @@ impl Clock for WasmClock {
         let nanos = now - self.start;
         nanos
     }
+    fn sleep(&self) {
+        // do nothing. the request animation frame loop sleeps for us.
+    }
 }
 
 /////////////////////////////////////////////////////////////////////

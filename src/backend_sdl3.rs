@@ -438,6 +438,10 @@ impl Clock for StandardClock {
     fn elapsed_since_start(&self) -> u128 {
         self.start.elapsed().as_nanos()
     }
+    fn sleep(&self) {
+        // Arbitrary constant for now.
+        ::std::thread::sleep(Duration::from_millis(2));
+    }
 }
 
 impl Backend for BackendSDL3 {

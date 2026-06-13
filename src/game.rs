@@ -8,8 +8,6 @@ use crate::scene::game_over::GameOverScene;
 use crate::scene::level::LevelScene;
 use crate::scene::shutting_down::ShuttingDownScene;
 
-use std::time::Duration;
-
 pub struct Game {
     // counters to track game updates on a fixed interval with catch up
     prev_tick: u128,
@@ -173,8 +171,7 @@ impl Game {
         }
 
         if !self.should_draw {
-            // Arbitrary constant for now.
-            ::std::thread::sleep(Duration::from_millis(2));
+            clock.sleep();
             return;
         }
 
