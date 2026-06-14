@@ -126,8 +126,15 @@ impl AssetLoader for AssetLoaderWasm {
         let path = id_to_relative_path(id);
         let path = self.base_path.join(path);
         img.set_src(&pathbuf_to_url(&path));
-        context.storage.append_child(&img);
-        context.texture_id_to_image.insert(id, img);
+        let result = context.storage.append_child(&img);
+        if let Ok(_) = result {
+            context.texture_id_to_image.insert(id, img);
+            web_sys::console::log_1(&format!("texture loaded for texture id {}", id.0).into());
+        } else if let Err(e) = result {
+            web_sys::console::log_1(
+                &format!("error loading texture id {} {:?}", id.0, e.as_string()).into(),
+            );
+        }
     }
 }
 
