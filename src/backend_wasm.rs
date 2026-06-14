@@ -18,7 +18,10 @@ use std::time::Duration; // this is probably going to bite us later.
 
 use wasm_bindgen::JsCast;
 use wasm_bindgen::closure::Closure;
-use web_sys::{Document, HtmlCanvasElement, HtmlDivElement, HtmlElement, HtmlImageElement, Window};
+use web_sys::{
+    CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlDivElement, HtmlElement,
+    HtmlImageElement, Window,
+};
 
 pub struct WasmSounds {}
 
@@ -444,7 +447,21 @@ impl Renderer for RendererWasm {
         "WASM Renderer".to_string()
     }
 
-    fn clear(&mut self, _color: Color) {}
+    fn clear(&mut self, _color: Color) {
+        let ctx = &mut *self.wasm_context.borrow_mut();
+        let context2d = (*ctx.canvas)
+            .get_context("2d")
+            .expect("2d context was None")
+            .expect("failed to find 2d context")
+            .dyn_into::<CanvasRenderingContext2d>()
+            .expect("could not convert found context into CanvasRenderingContext2d");
+        context2d.clear_rect(
+            0.,
+            0.,
+            (*ctx.canvas).width().into(),
+            (*ctx.canvas).height().into(),
+        );
+    }
 
     fn present(&mut self) {
         self.process_commands();
