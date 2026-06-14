@@ -153,7 +153,6 @@ pub fn start() {
     console_error_panic_hook::set_once();
 
     let options = GameOptions::default();
-    let mut game = Game::new();
-
+    let game = Game::new();
     run(&options, game);
 }

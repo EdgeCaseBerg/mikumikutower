@@ -308,7 +308,7 @@ impl Backend for BackendWasm {
             texture_id_to_image: HashMap::new(),
         }));
         let e = EventLoopWasm {
-            canvas: self.canvas.clone(),
+            _canvas: self.canvas.clone(),
             wasm_context: wasm_context,
         };
         Box::new(e)
@@ -316,7 +316,7 @@ impl Backend for BackendWasm {
 }
 
 pub struct EventLoopWasm {
-    canvas: Rc<HtmlCanvasElement>,
+    _canvas: Rc<HtmlCanvasElement>,
     wasm_context: Rc<RefCell<WasmContext>>,
 }
 
