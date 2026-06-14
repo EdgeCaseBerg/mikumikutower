@@ -424,9 +424,14 @@ impl RendererWasm {
                             dw as f64,
                             dh as f64,
                         );
-                        // TODO log bad call
-                        //     .unwrap_or_else(|_| {
-                        //         let _ = &format!("failed to draw texture {}", texture_id.0);
+                        if let Err(e) = result {
+                            let msg = format!(
+                                "failed to draw texture {} {:?}",
+                                texture_id.0,
+                                e.as_string()
+                            );
+                            web_sys::console::log_1(&msg.into());
+                        }
                     }
                 }
             }
