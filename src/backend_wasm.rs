@@ -278,6 +278,10 @@ impl BackendWasm {
             .style()
             .set_property("border", "solid")
             .expect("cant style canvas");
+        canvas
+            .style()
+            .set_property("background", "black")
+            .expect("cant style canvas");
         let canvas = Rc::new(canvas);
         BackendWasm { canvas }
     }
