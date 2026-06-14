@@ -10,13 +10,15 @@ use crate::game_options::GameOptions;
 use crate::renderer::{Color, RenderCommand, Renderer};
 
 use std::cell::RefCell;
+use std::collections::HashMap;
+use std::path::PathBuf;
 use std::rc::Rc;
 
 use std::time::Duration; // this is probably going to bite us later.
 
 use wasm_bindgen::JsCast;
 use wasm_bindgen::closure::Closure;
-use web_sys::{Document, HtmlCanvasElement, HtmlElement, Window};
+use web_sys::{Document, HtmlCanvasElement, HtmlDivElement, HtmlElement, HtmlImageElement, Window};
 
 pub struct WasmSounds {}
 
@@ -55,10 +57,75 @@ impl Audio for WasmSounds {
     }
 }
 
-struct AssetLoaderWasm {}
+struct WasmContext {
+    storage: Rc<HtmlDivElement>,
+    canvas: Rc<HtmlCanvasElement>,
+    document: Rc<Document>,
+    texture_id_to_image: HashMap<TextureId, HtmlImageElement>,
+}
+
+impl WasmContext {
+    fn get_image(&self, id: TextureId) -> Option<&HtmlImageElement> {
+        let Some(html_image_element) = self.texture_id_to_image.get(&id) else {
+            return None;
+        };
+        if !html_image_element.complete() {
+            return None;
+        }
+        Some(html_image_element)
+    }
+}
+
+struct AssetLoaderWasm {
+    base_path: PathBuf,
+    wasm_context: Rc<RefCell<WasmContext>>,
+}
+
+impl AssetLoaderWasm {
+    fn new(game_options: &GameOptions, wasm_context: Rc<RefCell<WasmContext>>) -> Self {
+        let path = game_options.assets_path.clone();
+
+        Self {
+            base_path: path,
+            wasm_context: wasm_context.clone(),
+        }
+    }
+}
+
+fn pathbuf_to_url(p: &PathBuf) -> String {
+    let mut s = String::new();
+    let len = p.iter().count();
+    for (index, path_part) in p.iter().enumerate() {
+        s.push_str(&path_part.to_string_lossy());
+        if index < len - 1 {
+            s.push_str("/");
+        }
+    }
+    s
+}
 
 impl AssetLoader for AssetLoaderWasm {
-    fn ensure_texture_spritesheet_loaded(&mut self, _id: TextureId) {}
+    fn ensure_texture_spritesheet_loaded(&mut self, id: TextureId) {
+        let context = &mut *self.wasm_context.borrow_mut();
+
+        if let Some(_) = context.texture_id_to_image.get(&id) {
+            web_sys::console::log_1(&format!("texture id {} already loaded", id.0).into());
+            return;
+        }
+        web_sys::console::log_1(&format!("loading texture id {}", id.0).into());
+        let img = context
+            .document
+            .create_element("img")
+            .expect("could not create img")
+            .dyn_into::<HtmlImageElement>()
+            .expect("could not dyn_into HtmlImageElement");
+        img.set_name(&format!("texture-{}", id.0));
+        let path = id_to_relative_path(id);
+        let path = self.base_path.join(path);
+        img.set_src(&pathbuf_to_url(&path));
+        context.storage.append_child(&img);
+        context.texture_id_to_image.insert(id, img);
+    }
 }
 
 struct WasmClock {
@@ -211,8 +278,28 @@ impl Backend for BackendWasm {
         Box::new(WasmClock::new())
     }
     fn create_event_loop(&self, _game_options: &GameOptions) -> Box<dyn BackendEventLoop> {
+        let document = document();
+        let div = document
+            .create_element("div")
+            .expect("could not create div")
+            .dyn_into::<HtmlDivElement>()
+            .expect("could not dyn_into HtmlDivElement");
+        div.style()
+            .set_property("display", "none")
+            .expect("couldnt hide div to load images into");
+        body()
+            .append_child(&div)
+            .expect("could not add canvas to body");
+
+        let wasm_context = Rc::new(RefCell::new(WasmContext {
+            canvas: self.canvas.clone(),
+            document: document.into(),
+            storage: div.into(),
+            texture_id_to_image: HashMap::new(),
+        }));
         let e = EventLoopWasm {
             canvas: self.canvas.clone(),
+            wasm_context: wasm_context,
         };
         Box::new(e)
     }
@@ -220,11 +307,18 @@ impl Backend for BackendWasm {
 
 pub struct EventLoopWasm {
     canvas: Rc<HtmlCanvasElement>,
+    wasm_context: Rc<RefCell<WasmContext>>,
 }
 
 impl BackendEventLoop for EventLoopWasm {
     fn run(&mut self, mut game: Game, mut game_context: GameContext) {
         web_sys::console::log_1(&"starting game loop".into());
+
+        // First time load setup
+        let scene = game.scene.as_mut();
+        if let Some(scene) = scene {
+            scene.init(&mut game_context);
+        }
 
         let self_referencing_function: Rc<RefCell<Option<Closure<dyn FnMut()>>>> =
             Rc::new(RefCell::new(None));
@@ -232,10 +326,6 @@ impl BackendEventLoop for EventLoopWasm {
         let closure =
             Closure::wrap(Box::new(move || {
                 web_sys::console::log_1(&"frame!".into());
-                let scene = game.scene.as_mut();
-                if let Some(scene) = scene {
-                    scene.init(&mut game_context);
-                }
 
                 // initialize the audio pool if the scene has queued things up
                 let audio = game_context.audio.as_mut();
@@ -243,7 +333,6 @@ impl BackendEventLoop for EventLoopWasm {
                     let _ = audio.prepare();
                 }
 
-                // TODO: this is where we need to do the closure callback dance.
                 game.update(&mut game_context);
                 if let Some(mut next_scene) = game_context.next_scene.take() {
                     next_scene.init(&mut game_context);
@@ -264,6 +353,8 @@ impl BackendEventLoop for EventLoopWasm {
                 ));
             }) as Box<dyn FnMut()>);
         *self_referencing_function.borrow_mut() = Some(closure);
+
+        // LOOOOOOOOOP
         request_animation_frame(
             self_referencing_function
                 .borrow()
@@ -275,12 +366,15 @@ impl BackendEventLoop for EventLoopWasm {
     }
 
     fn new_renderer(&self, _game_options: &GameOptions) -> Box<dyn Renderer> {
-        let r = RendererWasm { commands: vec![] };
+        let r = RendererWasm {
+            commands: vec![],
+            wasm_context: self.wasm_context.clone(),
+        };
         Box::new(r)
     }
 
-    fn create_asset_loader(&self, _game_options: &GameOptions) -> Box<dyn AssetLoader> {
-        let a = AssetLoaderWasm {};
+    fn create_asset_loader(&self, game_options: &GameOptions) -> Box<dyn AssetLoader> {
+        let a = AssetLoaderWasm::new(game_options, self.wasm_context.clone());
         Box::new(a)
     }
 
@@ -291,32 +385,49 @@ impl BackendEventLoop for EventLoopWasm {
 }
 
 struct RendererWasm {
+    wasm_context: Rc<RefCell<WasmContext>>,
     commands: Vec<RenderCommand>,
 }
 
 impl RendererWasm {
-    // Internally used before presenting. Drains all commands
-    // in order to enque all the work to SDL3 that we want done
-    // per frame.
     fn process_commands(&mut self) {
         for cmd in self.commands.drain(..) {
             match cmd {
                 RenderCommand::DrawRect {
-                    texture_id: _,
-                    source: _,
-                    destination: _,
+                    texture_id,
+                    source,
+                    destination,
                 } => {
-                    // TODO do this sort of thing but with wasm.
-                    // let ctx = &mut *self.context.borrow_mut();
-                    // if let Some(texture) = ctx.textures.get_texture(texture_id) {
-                    //     let src: sdl3::rect::Rect = source.into();
-                    //     let dst: sdl3::rect::Rect = destination.into();
-                    //     ctx.window_canvas
-                    //         .copy(texture, src, dst)
-                    //         .unwrap_or_else(|_| {
-                    //             let _ = &format!("failed to draw texture {}", texture_id.0);
-                    //         });
-                    // }
+                    let ctx = &mut *self.wasm_context.borrow_mut();
+                    if let Some(html_image_element) = ctx.get_image(texture_id) {
+                        let (sx, sy, sw, sh) = (source.x, source.y, source.width, source.height);
+                        let (dx, dy, dw, dh) = (
+                            destination.x,
+                            destination.y,
+                            destination.width,
+                            destination.height,
+                        );
+                        let context2d = (*ctx.canvas)
+                            .get_context("2d")
+                            .unwrap()
+                            .unwrap()
+                            .dyn_into::<web_sys::CanvasRenderingContext2d>()
+                            .unwrap();
+                        let result = context2d.draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
+                            html_image_element,
+                            sx as f64,
+                            sy as f64,
+                            sw as f64,
+                            sh as f64,
+                            dx as f64,
+                            dy as f64,
+                            dw as f64,
+                            dh as f64,
+                        );
+                        // TODO log bad call
+                        //     .unwrap_or_else(|_| {
+                        //         let _ = &format!("failed to draw texture {}", texture_id.0);
+                    }
                 }
             }
         }
