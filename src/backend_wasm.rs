@@ -308,7 +308,7 @@ impl Backend for BackendWasm {
             texture_id_to_image: HashMap::new(),
         }));
         let e = EventLoopWasm {
-            _canvas: self.canvas.clone(),
+            canvas: self.canvas.clone(),
             wasm_context: wasm_context,
         };
         Box::new(e)
@@ -316,7 +316,7 @@ impl Backend for BackendWasm {
 }
 
 pub struct EventLoopWasm {
-    _canvas: Rc<HtmlCanvasElement>,
+    canvas: Rc<HtmlCanvasElement>,
     wasm_context: Rc<RefCell<WasmContext>>,
 }
 
@@ -330,19 +330,88 @@ impl BackendEventLoop for EventLoopWasm {
             scene.init(&mut game_context);
         }
 
+        // setup input processing
+        // initialize the audio pool if the scene has queued things up
+        let audio = game_context.audio.as_mut();
+        if let Some(audio) = audio {
+            let _ = audio.prepare();
+        }
+
+        let context = (*self.canvas)
+            .get_context("2d")
+            .unwrap()
+            .unwrap()
+            .dyn_into::<web_sys::CanvasRenderingContext2d>()
+            .unwrap();
+        let left_pressed = Rc::new(RefCell::new(false));
+        let right_pressed = Rc::new(RefCell::new(false));
+        let mouse_coordinates = Rc::new(RefCell::new(None));
+        {
+            let left_pressed = left_pressed.clone();
+            let right_pressed = right_pressed.clone();
+            let mouse_coordinates = mouse_coordinates.clone();
+            let closure = Closure::<dyn FnMut(_)>::new(move |event: web_sys::MouseEvent| {
+                match event.button() {
+                    0 => {
+                        *left_pressed.borrow_mut() = true;
+                    }
+                    2 => *right_pressed.borrow_mut() = true,
+                    _ => {}
+                }
+                *mouse_coordinates.borrow_mut() = Some((event.x() as f32, event.y() as f32));
+            });
+            self.canvas
+                .add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref())
+                .unwrap();
+            closure.forget();
+        }
+        {
+            let mouse_coordinates = mouse_coordinates.clone();
+
+            let closure = Closure::<dyn FnMut(_)>::new(move |event: web_sys::MouseEvent| {
+                *mouse_coordinates.borrow_mut() = Some((event.x() as f32, event.y() as f32));
+            });
+            self.canvas
+                .add_event_listener_with_callback("mousemove", closure.as_ref().unchecked_ref())
+                .unwrap();
+            closure.forget();
+        }
+        {
+            let left_pressed = left_pressed.clone();
+            let right_pressed = right_pressed.clone();
+            let mouse_coordinates = mouse_coordinates.clone();
+            let closure = Closure::<dyn FnMut(_)>::new(move |event: web_sys::MouseEvent| {
+                // event.offset_x() as f64, event.offset_y() as f64
+                match event.button() {
+                    0 => {
+                        *left_pressed.borrow_mut() = false;
+                    }
+                    2 => {
+                        *right_pressed.borrow_mut() = false;
+                    }
+                    _ => {}
+                }
+                *mouse_coordinates.borrow_mut() = Some((event.x() as f32, event.y() as f32));
+            });
+            self.canvas
+                .add_event_listener_with_callback("mouseup", closure.as_ref().unchecked_ref())
+                .unwrap();
+            closure.forget();
+        }
+
         let self_referencing_function: Rc<RefCell<Option<Closure<dyn FnMut()>>>> =
             Rc::new(RefCell::new(None));
         let srf_handle = self_referencing_function.clone();
         let closure =
             Closure::wrap(Box::new(move || {
-                web_sys::console::log_1(&"frame!".into());
+                // Any events?
+                game_context.mouse_context.update(
+                    *left_pressed.borrow(),
+                    *right_pressed.borrow(),
+                    *mouse_coordinates.borrow(),
+                );
 
-                // initialize the audio pool if the scene has queued things up
-                let audio = game_context.audio.as_mut();
-                if let Some(audio) = audio {
-                    let _ = audio.prepare();
-                }
-
+                // Run updates.
                 game.update(&mut game_context);
                 if let Some(mut next_scene) = game_context.next_scene.take() {
                     next_scene.init(&mut game_context);
