@@ -8,7 +8,7 @@ fmt:
 wasm:
 	cargo build --target wasm32-unknown-unknown
 	wasm-bindgen target/wasm32-unknown-unknown/debug/mikumikutower.wasm --out-dir web/pkg --target web
-	cp -r assets web/pkg/assets
+	cp -r assets web/assets
 
 native:
 	cargo build
