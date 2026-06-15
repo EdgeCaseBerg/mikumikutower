@@ -373,23 +373,18 @@ impl BackendEventLoop for EventLoopWasm {
             let _ = audio.prepare();
         }
 
-        let left_pressed = Rc::new(RefCell::new(false));
-        let right_pressed = Rc::new(RefCell::new(false));
-        let mouse_coordinates = Rc::new(RefCell::new(None));
+        let mouse = MouseInfo {
+            left_pressed: None,
+            right_pressed: None,
+            mouse_coordinates: (0., 0.),
+        };
+        let mouse = Rc::new(RefCell::new(mouse));
         {
-            let left_pressed = left_pressed.clone();
-            let right_pressed = right_pressed.clone();
-            let mouse_coordinates = mouse_coordinates.clone();
+            let mouse = mouse.clone();
             let canvas = self.canvas.clone();
             let closure = Closure::<dyn FnMut(_)>::new(move |event: web_sys::MouseEvent| {
                 let mouse_info = MouseInfo::from(&event, &canvas);
-                mouse_info.left_pressed.map(|_| {
-                    *left_pressed.borrow_mut() = true;
-                });
-                mouse_info.right_pressed.map(|_| {
-                    *right_pressed.borrow_mut() = true;
-                });
-                *mouse_coordinates.borrow_mut() = Some(mouse_info.mouse_coordinates);
+                *mouse.borrow_mut() = mouse_info;
             });
             self.canvas
                 .add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref())
@@ -397,11 +392,11 @@ impl BackendEventLoop for EventLoopWasm {
             closure.forget();
         }
         {
-            let mouse_coordinates = mouse_coordinates.clone();
+            let mouse = mouse.clone();
             let canvas = self.canvas.clone();
             let closure = Closure::<dyn FnMut(_)>::new(move |event: web_sys::MouseEvent| {
                 let mouse_info = MouseInfo::from(&event, &canvas);
-                *mouse_coordinates.borrow_mut() = Some(mouse_info.mouse_coordinates);
+                mouse.borrow_mut().mouse_coordinates = mouse_info.mouse_coordinates;
             });
             self.canvas
                 .add_event_listener_with_callback("mousemove", closure.as_ref().unchecked_ref())
@@ -409,20 +404,14 @@ impl BackendEventLoop for EventLoopWasm {
             closure.forget();
         }
         {
-            let left_pressed = left_pressed.clone();
-            let right_pressed = right_pressed.clone();
-            let mouse_coordinates = mouse_coordinates.clone();
+            let mouse = mouse.clone();
             let canvas = self.canvas.clone();
             let closure = Closure::<dyn FnMut(_)>::new(move |event: web_sys::MouseEvent| {
-                let mouse_info = MouseInfo::from(&event, &canvas);
+                let mut mouse_info = MouseInfo::from(&event, &canvas);
                 // invert because we're unclicking
-                mouse_info.left_pressed.map(|_| {
-                    *left_pressed.borrow_mut() = false;
-                });
-                mouse_info.right_pressed.map(|_| {
-                    *right_pressed.borrow_mut() = false;
-                });
-                *mouse_coordinates.borrow_mut() = Some(mouse_info.mouse_coordinates);
+                mouse_info.left_pressed = mouse_info.left_pressed.map(|_| false);
+                mouse_info.right_pressed.map(|_| false);
+                *mouse.borrow_mut() = mouse_info;
             });
             self.canvas
                 .add_event_listener_with_callback("mouseup", closure.as_ref().unchecked_ref())
@@ -437,9 +426,9 @@ impl BackendEventLoop for EventLoopWasm {
             Closure::wrap(Box::new(move || {
                 // Any events?
                 game_context.mouse_context.update(
-                    *left_pressed.borrow(),
-                    *right_pressed.borrow(),
-                    *mouse_coordinates.borrow(),
+                    mouse.borrow().left_pressed.unwrap_or(false),
+                    mouse.borrow().right_pressed.unwrap_or(false),
+                    Some(mouse.borrow().mouse_coordinates),
                 );
 
                 // Run updates.
