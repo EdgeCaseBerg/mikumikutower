@@ -62,6 +62,7 @@ impl Audio for WasmSounds {
 
 struct WasmContext {
     storage: Rc<HtmlDivElement>,
+    context: Rc<CanvasRenderingContext2d>,
     canvas: Rc<HtmlCanvasElement>,
     document: Rc<Document>,
     texture_id_to_image: HashMap<TextureId, HtmlImageElement>,
@@ -304,8 +305,15 @@ impl Backend for BackendWasm {
         body()
             .append_child(&div)
             .expect("could not add canvas to body");
+        let context = (*self.canvas)
+            .get_context("2d")
+            .unwrap()
+            .unwrap()
+            .dyn_into::<web_sys::CanvasRenderingContext2d>()
+            .unwrap();
 
         let wasm_context = Rc::new(RefCell::new(WasmContext {
+            context: context.into(),
             canvas: self.canvas.clone(),
             document: document.into(),
             storage: div.into(),
@@ -341,12 +349,6 @@ impl BackendEventLoop for EventLoopWasm {
             let _ = audio.prepare();
         }
 
-        let context = (*self.canvas)
-            .get_context("2d")
-            .unwrap()
-            .unwrap()
-            .dyn_into::<web_sys::CanvasRenderingContext2d>()
-            .unwrap();
         let left_pressed = Rc::new(RefCell::new(false));
         let right_pressed = Rc::new(RefCell::new(false));
         let mouse_coordinates = Rc::new(RefCell::new(None));
@@ -510,12 +512,7 @@ impl RendererWasm {
                             destination.width,
                             destination.height,
                         );
-                        let context2d = (*ctx.canvas)
-                            .get_context("2d")
-                            .unwrap()
-                            .unwrap()
-                            .dyn_into::<web_sys::CanvasRenderingContext2d>()
-                            .unwrap();
+                        let context2d = ctx.context.clone();
                         let result = context2d.draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
                             html_image_element,
                             sx as f64,
@@ -549,12 +546,7 @@ impl Renderer for RendererWasm {
 
     fn clear(&mut self, _color: Color) {
         let ctx = &mut *self.wasm_context.borrow_mut();
-        let context2d = (*ctx.canvas)
-            .get_context("2d")
-            .expect("2d context was None")
-            .expect("failed to find 2d context")
-            .dyn_into::<CanvasRenderingContext2d>()
-            .expect("could not convert found context into CanvasRenderingContext2d");
+        let context2d = ctx.context.clone();
         context2d.clear_rect(
             0.,
             0.,
