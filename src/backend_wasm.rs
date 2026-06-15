@@ -307,10 +307,10 @@ impl Backend for BackendWasm {
             .expect("could not add canvas to body");
         let context = (*self.canvas)
             .get_context("2d")
-            .unwrap()
-            .unwrap()
+            .expect("could not find 2d context")
+            .expect("could not get context, was none")
             .dyn_into::<web_sys::CanvasRenderingContext2d>()
-            .unwrap();
+            .expect("could not dyn_into element into CanvasRenderingContext2d");
 
         let wasm_context = Rc::new(RefCell::new(WasmContext {
             context: context.into(),
