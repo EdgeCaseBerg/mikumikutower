@@ -20,7 +20,7 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen::closure::Closure;
 use web_sys::{
     CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlDivElement, HtmlElement,
-    HtmlImageElement, Window,
+    HtmlImageElement, MouseEvent, Window,
 };
 
 pub struct WasmSounds {}
@@ -327,6 +327,30 @@ impl Backend for BackendWasm {
     }
 }
 
+struct MouseInfo {
+    left_pressed: Option<bool>,
+    right_pressed: Option<bool>,
+    mouse_coordinates: (f32, f32),
+}
+
+impl MouseInfo {
+    fn from(event: &MouseEvent, canvas: &HtmlCanvasElement) -> Self {
+        let (left_pressed, right_pressed) = match event.button() {
+            0 => (Some(true), None),
+            2 => (None, Some(true)),
+            _ => (None, None),
+        };
+        let rect = canvas.get_bounding_client_rect();
+        let x = (event.client_x() as f64 - rect.left()) * (canvas.width() as f64 / rect.width());
+        let y = (event.client_y() as f64 - rect.top()) * (canvas.height() as f64 / rect.height());
+        Self {
+            left_pressed,
+            right_pressed,
+            mouse_coordinates: (x as f32, y as f32),
+        }
+    }
+}
+
 pub struct EventLoopWasm {
     canvas: Rc<HtmlCanvasElement>,
     wasm_context: Rc<RefCell<WasmContext>>,
@@ -358,20 +382,14 @@ impl BackendEventLoop for EventLoopWasm {
             let mouse_coordinates = mouse_coordinates.clone();
             let canvas = self.canvas.clone();
             let closure = Closure::<dyn FnMut(_)>::new(move |event: web_sys::MouseEvent| {
-                match event.button() {
-                    0 => {
-                        *left_pressed.borrow_mut() = true;
-                    }
-                    2 => *right_pressed.borrow_mut() = true,
-                    _ => {}
-                }
-                let rect = canvas.get_bounding_client_rect();
-                let x = (event.client_x() as f64 - rect.left())
-                    * (canvas.width() as f64 / rect.width());
-
-                let y = (event.client_y() as f64 - rect.top())
-                    * (canvas.height() as f64 / rect.height());
-                *mouse_coordinates.borrow_mut() = Some((x as f32, y as f32));
+                let mouse_info = MouseInfo::from(&event, &canvas);
+                mouse_info.left_pressed.map(|_| {
+                    *left_pressed.borrow_mut() = true;
+                });
+                mouse_info.right_pressed.map(|_| {
+                    *right_pressed.borrow_mut() = true;
+                });
+                *mouse_coordinates.borrow_mut() = Some(mouse_info.mouse_coordinates);
             });
             self.canvas
                 .add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref())
@@ -382,13 +400,8 @@ impl BackendEventLoop for EventLoopWasm {
             let mouse_coordinates = mouse_coordinates.clone();
             let canvas = self.canvas.clone();
             let closure = Closure::<dyn FnMut(_)>::new(move |event: web_sys::MouseEvent| {
-                let rect = canvas.get_bounding_client_rect();
-                let x = (event.client_x() as f64 - rect.left())
-                    * (canvas.width() as f64 / rect.width());
-
-                let y = (event.client_y() as f64 - rect.top())
-                    * (canvas.height() as f64 / rect.height());
-                *mouse_coordinates.borrow_mut() = Some((x as f32, y as f32));
+                let mouse_info = MouseInfo::from(&event, &canvas);
+                *mouse_coordinates.borrow_mut() = Some(mouse_info.mouse_coordinates);
             });
             self.canvas
                 .add_event_listener_with_callback("mousemove", closure.as_ref().unchecked_ref())
@@ -401,23 +414,15 @@ impl BackendEventLoop for EventLoopWasm {
             let mouse_coordinates = mouse_coordinates.clone();
             let canvas = self.canvas.clone();
             let closure = Closure::<dyn FnMut(_)>::new(move |event: web_sys::MouseEvent| {
-                // event.offset_x() as f64, event.offset_y() as f64
-                match event.button() {
-                    0 => {
-                        *left_pressed.borrow_mut() = false;
-                    }
-                    2 => {
-                        *right_pressed.borrow_mut() = false;
-                    }
-                    _ => {}
-                }
-                let rect = canvas.get_bounding_client_rect();
-                let x = (event.client_x() as f64 - rect.left())
-                    * (canvas.width() as f64 / rect.width());
-
-                let y = (event.client_y() as f64 - rect.top())
-                    * (canvas.height() as f64 / rect.height());
-                *mouse_coordinates.borrow_mut() = Some((x as f32, y as f32));
+                let mouse_info = MouseInfo::from(&event, &canvas);
+                // invert because we're unclicking
+                mouse_info.left_pressed.map(|_| {
+                    *left_pressed.borrow_mut() = false;
+                });
+                mouse_info.right_pressed.map(|_| {
+                    *right_pressed.borrow_mut() = false;
+                });
+                *mouse_coordinates.borrow_mut() = Some(mouse_info.mouse_coordinates);
             });
             self.canvas
                 .add_event_listener_with_callback("mouseup", closure.as_ref().unchecked_ref())
