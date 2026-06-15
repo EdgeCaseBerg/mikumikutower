@@ -373,6 +373,16 @@ impl BackendEventLoop for EventLoopWasm {
             let _ = audio.prepare();
         }
 
+        let resize_time = Rc::new(RefCell::new(false));
+        {
+            let resize_time = resize_time.clone();
+            let closure = Closure::<dyn FnMut(_)>::new(move |event: web_sys::Event| {
+                *resize_time.clone().borrow_mut() = true.into();
+            });
+            window().set_onresize(Some(closure.as_ref().unchecked_ref()));
+            closure.forget()
+        }
+
         let mouse = MouseInfo {
             left_pressed: None,
             right_pressed: None,
@@ -422,6 +432,7 @@ impl BackendEventLoop for EventLoopWasm {
         let self_referencing_function: Rc<RefCell<Option<Closure<dyn FnMut()>>>> =
             Rc::new(RefCell::new(None));
         let srf_handle = self_referencing_function.clone();
+        let canvas = self.canvas.clone();
         let closure =
             Closure::wrap(Box::new(move || {
                 // Any events?
@@ -430,6 +441,10 @@ impl BackendEventLoop for EventLoopWasm {
                     mouse.borrow().right_pressed.unwrap_or(false),
                     Some(mouse.borrow().mouse_coordinates),
                 );
+                if *resize_time.clone().borrow() {
+                    *resize_time.borrow_mut() = false;
+                    game_context.screen_size = (canvas.width() as u32, canvas.height() as u32);
+                }
 
                 // Run updates.
                 game.update(&mut game_context);
