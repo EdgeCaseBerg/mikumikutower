@@ -19,15 +19,39 @@ use std::time::Duration; // this is probably going to bite us later.
 use wasm_bindgen::JsCast;
 use wasm_bindgen::closure::Closure;
 use web_sys::{
-    CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlDivElement, HtmlElement,
-    HtmlImageElement, MouseEvent, Window,
+    CanvasRenderingContext2d, Document, HtmlAudioElement, HtmlCanvasElement, HtmlDivElement,
+    HtmlElement, HtmlImageElement, MouseEvent, Window,
 };
 
-pub struct WasmSounds {}
+pub struct WasmSounds {
+    sound_by_id: HashMap<SfxId, HtmlAudioElement>,
+    music_by_id: HashMap<MusicId, HtmlAudioElement>,
+    base_path: PathBuf,
+    storage: HtmlDivElement,
+}
 
 impl WasmSounds {
-    fn new(_game_options: &GameOptions) -> Self {
-        WasmSounds {}
+    fn new(game_options: &GameOptions) -> Self {
+        let path = game_options.assets_path.clone();
+        let storage = document()
+            .create_element("div")
+            .expect("could not create div")
+            .dyn_into::<HtmlDivElement>()
+            .expect("could not dyn_into HtmlDivElement");
+        storage
+            .style()
+            .set_property("display", "none")
+            .expect("couldnt hide div to load audio into");
+        body()
+            .append_child(&storage)
+            .expect("could not add audio storage to body");
+
+        Self {
+            base_path: path,
+            sound_by_id: HashMap::new(),
+            music_by_id: HashMap::new(),
+            storage,
+        }
     }
 }
 
