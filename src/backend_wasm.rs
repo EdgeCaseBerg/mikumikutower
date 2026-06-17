@@ -59,7 +59,40 @@ impl Audio for WasmSounds {
     fn play_sfx(&mut self, _id: SfxId) -> AudioResult<()> {
         Ok(())
     }
-    fn load_sfx(&mut self, _sound_id: SfxId) -> AudioResult<()> {
+    fn load_sfx(&mut self, sound_id: SfxId) -> AudioResult<()> {
+        if let Some(_) = self.sound_by_id.get(&sound_id) {
+            web_sys::console::log_1(&format!("sound id {} already loaded", sound_id.0).into());
+            return Ok(());
+        }
+
+        web_sys::console::log_1(&format!("loading sound id {}", sound_id.0).into());
+        let document = document();
+        let audio = document
+            .create_element("audio")
+            .expect("could not create audio")
+            .dyn_into::<HtmlAudioElement>()
+            .expect("could not dyn_into HtmlAudioElement");
+
+        let path = sfx_id_to_relative_path(sound_id);
+        let path = self.base_path.join(path);
+        audio.set_src(&pathbuf_to_url(&path));
+
+        let result = self.storage.append_child(&audio);
+        if let Ok(_) = result {
+            self.sound_by_id.insert(sound_id, audio);
+            web_sys::console::log_1(
+                &format!("texture loaded for texture id {}", sound_id.0).into(),
+            );
+        } else if let Err(e) = result {
+            web_sys::console::log_1(
+                &format!(
+                    "error loading texture id {} {:?}",
+                    sound_id.0,
+                    e.as_string()
+                )
+                .into(),
+            );
+        }
         Ok(())
     }
     fn play_music(&mut self, _id: MusicId) -> Result<(), Box<dyn std::error::Error>> {
