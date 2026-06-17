@@ -56,7 +56,13 @@ impl WasmSounds {
 }
 
 impl Audio for WasmSounds {
-    fn play_sfx(&mut self, _id: SfxId) -> AudioResult<()> {
+    fn play_sfx(&mut self, sound_id: SfxId) -> AudioResult<()> {
+        let Some(audio) = self.sound_by_id.get(&sound_id) else {
+            web_sys::console::log_1(&format!("sound id {} not loaded", sound_id.0).into());
+            return Ok(());
+        };
+        let _ = audio.play();
+        // TODO: we should actually handle the promise, I guess?
         Ok(())
     }
     fn load_sfx(&mut self, sound_id: SfxId) -> AudioResult<()> {
