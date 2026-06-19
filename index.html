@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script type="module">
+import init from "./pkg/mikumikutower.js";
+async function go() {
+	await init();
+	console.log("loaded");
+}
+window.go = go;
+</script>
+<button onclick="window.go()">start game</button>
+<br/>
+</body>
+</html>
