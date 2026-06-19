@@ -35,7 +35,7 @@ Then just serve the web folder out via a python or php server as you please.
 
 ## Side notes about the game
 
-If you have interest in seeing how this game was made from start to finish, then you can read the full dev blog here https://peetseater.space/blag/2026-05-25-miku-miku-tower-defense
+If you have interest in seeing how this game was made from start to finish, then you can read the full dev blog here https://peetseater.space/blag/2026-05-25-miku-miku-tower-defense and the wasm specific work is covered [here](https://peetseater.space/blag/2026-06-19-wasm)
 
 If you want to play your own music while in the game, then title the wav files 1.wav, 2.wav, etc up to 999.wav into the assets/audio/cc-vocaloid folder.
 Supported file types are whatever sdl3 supports, so see the console output when the game loads to check that out.
