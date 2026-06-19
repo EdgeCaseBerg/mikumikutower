@@ -61,8 +61,10 @@ impl Audio for WasmSounds {
             web_sys::console::log_1(&format!("sound id {} not loaded", sound_id.0).into());
             return Ok(());
         };
+        // audio isn't particularly critical if it doesn't work, so swallow errors
+        // an obvious error will occur in the console if the player hasn't clicked yet
+        // in the canvas which allows the audio to play in the first place.
         let _ = audio.play();
-        // TODO: we should actually handle the promise, I guess?
         Ok(())
     }
     fn load_sfx(&mut self, sound_id: SfxId) -> AudioResult<()> {
@@ -101,20 +103,97 @@ impl Audio for WasmSounds {
         }
         Ok(())
     }
-    fn play_music(&mut self, _id: MusicId) -> Result<(), Box<dyn std::error::Error>> {
+    fn play_music(&mut self, id: MusicId) -> Result<(), Box<dyn std::error::Error>> {
+        let Some(audio) = self.music_by_id.get(&id) else {
+            web_sys::console::log_1(&format!("sound id {} not loaded", id.0).into());
+            return Ok(());
+        };
+        // We need to pause anything that might be playing.
+        for audio in self.music_by_id.values() {
+            let _ = audio.pause();
+            audio.set_current_time(0.0);
+        }
+
+        // audio isn't particularly critical if it doesn't work, so swallow errors
+        // an obvious error will occur in the console if the player hasn't clicked yet
+        // in the canvas which allows the audio to play in the first place.
+        let _ = audio.play();
         Ok(())
     }
 
     /// Calling this method with the same id multiple times will only load the music once.
-    fn load_music(&mut self, _id: MusicId) -> AudioResult<()> {
+    fn load_music(&mut self, id: MusicId) -> AudioResult<()> {
+        if let Some(_) = self.music_by_id.get(&id) {
+            web_sys::console::log_1(&format!("sound id {} already loaded", id.0).into());
+            return Ok(());
+        }
+
+        web_sys::console::log_1(&format!("loading sound id {}", id.0).into());
+        let document = document();
+        let audio = document
+            .create_element("audio")
+            .expect("could not create audio")
+            .dyn_into::<HtmlAudioElement>()
+            .expect("could not dyn_into HtmlAudioElement");
+
+        let path = music_id_to_relative_path(id);
+        let path = self.base_path.join(path);
+        audio.set_src(&pathbuf_to_url(&path));
+
+        let result = self.storage.append_child(&audio);
+        if let Ok(_) = result {
+            self.music_by_id.insert(id, audio);
+            web_sys::console::log_1(&format!("texture loaded for texture id {}", id.0).into());
+        } else if let Err(e) = result {
+            web_sys::console::log_1(
+                &format!("error loading texture id {} {:?}", id.0, e.as_string()).into(),
+            );
+        }
         Ok(())
     }
     fn load_bg_music(&mut self) -> Vec<AudioResult<MusicId>> {
-        let ids = Vec::new();
+        let mut ids = Vec::new();
+        let music_folder = PathBuf::new().join("audio").join("cc-vocaloid");
+        let document = document();
+        // These are unfortunately hardcoded in the wasm world, it is what it is.
+        for id in [MusicId(1), MusicId(2)] {
+            web_sys::console::log_1(&format!("loading sound id {}", id.0).into());
+            let audio = document
+                .create_element("audio")
+                .expect("could not create audio")
+                .dyn_into::<HtmlAudioElement>()
+                .expect("could not dyn_into HtmlAudioElement");
+
+            let path = music_folder.clone().join(format!("{}.mp3", id.0));
+            let src = self.base_path.join(path);
+            let path = pathbuf_to_url(&src);
+            audio.set_src(&pathbuf_to_url(&PathBuf::from(path)));
+
+            let result = self.storage.append_child(&audio);
+            if let Ok(_) = result {
+                self.music_by_id.insert(id, audio);
+                web_sys::console::log_1(&format!("texture loaded for texture id {}", id.0).into());
+                ids.push(Ok(id));
+            } else if let Err(e) = result {
+                web_sys::console::log_1(
+                    &format!("error loading texture id {} {:?}", id.0, e.as_string()).into(),
+                );
+                ids.push(Err(format!(
+                    "error loading texture id {} {:?}",
+                    id.0,
+                    e.as_string()
+                )
+                .into()));
+            }
+        }
         ids
     }
-    fn music_duration_seconds(&self, _id: MusicId) -> AudioResult<Duration> {
-        Ok(Duration::from_millis(0))
+
+    fn music_duration_seconds(&self, id: MusicId) -> AudioResult<Duration> {
+        let Some(audio) = self.music_by_id.get(&id) else {
+            return Ok(Duration::from_millis(0));
+        };
+        Ok(Duration::from_secs(audio.duration() as u64))
     }
 
     fn prepare(&mut self) -> Vec<AudioResult<()>> {
