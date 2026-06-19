@@ -197,8 +197,7 @@ impl Audio for WasmSounds {
     }
 
     fn prepare(&mut self) -> Vec<AudioResult<()>> {
-        let stream_failures = vec![];
-        stream_failures
+        vec![]
     }
 }
 
