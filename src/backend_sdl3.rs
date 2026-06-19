@@ -2,6 +2,7 @@ use crate::Rect;
 use crate::asset_loader::AssetLoader;
 use crate::audio::{Audio, AudioResult};
 use crate::backend::*;
+use crate::clock::Clock;
 use crate::constants::*;
 use crate::constants::{MusicId, SfxId};
 use crate::game::Game;
@@ -421,7 +422,33 @@ impl BackendSDL3 {
     }
 }
 
+struct StandardClock {
+    start: Instant,
+}
+
+impl StandardClock {
+    fn new() -> StandardClock {
+        Self {
+            start: Instant::now(),
+        }
+    }
+}
+
+impl Clock for StandardClock {
+    fn elapsed_since_start(&self) -> u128 {
+        self.start.elapsed().as_nanos()
+    }
+    fn sleep(&self) {
+        // Arbitrary constant for now.
+        ::std::thread::sleep(Duration::from_millis(2));
+    }
+}
+
 impl Backend for BackendSDL3 {
+    fn create_clock(&self) -> Box<dyn Clock> {
+        Box::new(StandardClock::new())
+    }
+
     fn create_event_loop(&self, game_options: &GameOptions) -> Box<dyn BackendEventLoop> {
         let event_pump = self.sdl.event_pump().unwrap();
 
@@ -466,10 +493,10 @@ pub struct EventLoopSDL3 {
 }
 
 impl BackendEventLoop for EventLoopSDL3 {
-    fn run(&mut self, game: &mut Game, game_context: &mut GameContext) {
+    fn run(&mut self, mut game: Game, mut game_context: GameContext) {
         let scene = game.scene.as_mut();
         if let Some(scene) = scene {
-            scene.init(game_context);
+            scene.init(&mut game_context);
         }
 
         // initialize the audio pool if the scene has queued things up
@@ -513,9 +540,9 @@ impl BackendEventLoop for EventLoopSDL3 {
                     _ => {}
                 }
             }
-            game.update(game_context);
+            game.update(&mut game_context);
             if let Some(mut next_scene) = game_context.next_scene.take() {
-                next_scene.init(game_context);
+                next_scene.init(&mut game_context);
                 game.scene = Some(next_scene);
                 game.reset_for_next_scene();
                 let audio = game_context.audio.as_mut();
@@ -523,7 +550,7 @@ impl BackendEventLoop for EventLoopSDL3 {
                     audio.prepare();
                 }
             }
-            game.draw(game_context);
+            game.draw(&mut game_context);
             if game_context.shutdown_flag {
                 break;
             }

@@ -1,7 +1,14 @@
 pub mod asset_loader;
 pub mod audio;
 pub mod backend;
+pub mod clock;
+
+#[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
 pub mod backend_sdl3;
+
+#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+pub mod backend_wasm;
+
 pub mod constants;
 pub mod font;
 pub mod game;
@@ -18,6 +25,7 @@ use crate::game_options::GameOptions;
 use crate::scene::Scene;
 use crate::scene::title_screen::TitleScene;
 
+#[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
 extern crate sdl3;
 
 #[derive(Debug, Clone, Copy)]
@@ -119,17 +127,32 @@ impl<T: PartialOrd + Copy + Add<Output = T> + Sub<Output = T> + Div<Output = T>>
     }
 }
 
-pub fn run(game_options: &GameOptions, game: &mut Game) {
+pub fn run(game_options: &GameOptions, mut game: Game) {
     let backend = init_backend(game_options);
     let mut event_loop = backend.create_event_loop(game_options);
     let mut game_context = crate::game::GameContext::default();
     let renderer = event_loop.new_renderer(game_options);
     let asset_loader = event_loop.create_asset_loader(game_options);
     let audio = event_loop.create_audio(game_options);
+    let clock = backend.create_clock();
     game_context.screen_size = (game_options.window_width, game_options.window_height);
     game_context.renderer = Some(renderer);
     game_context.asset_loader = Some(asset_loader);
     game_context.audio = Some(audio);
+    game_context.clock = Some(clock);
     game.scene = Some(Box::new(TitleScene::default()));
-    event_loop.run(game, &mut game_context);
+    event_loop.run(game, game_context);
+}
+
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen(start)]
+pub fn start() {
+    console_error_panic_hook::set_once();
+
+    let options = GameOptions::default();
+    let game = Game::new();
+    run(&options, game);
 }

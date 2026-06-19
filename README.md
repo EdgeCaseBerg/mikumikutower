@@ -5,15 +5,40 @@ On linux:
 ```
 sudo apt install libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev
 ```
+and if you'll be targeting wasm:
+```
+rustup target add wasm32-unknown-unknown
+cargo install wasm-bindgen-cli
+
+```
+
 
 On other platforms figure it out yourself here https://github.com/libsdl-org/SDL/blob/main/INSTALL.md
 
+## Build
+
+For native:
+
+```
+cargo build
+```
+
+For web via wasm:
+
+```
+cargo build --target wasm32-unknown-unknown
+wasm-bindgen target/wasm32-unknown-unknown/debug/mikumikutower.wasm --out-dir web/pkg --target web
+```
+
+If you want to build both then just run `make` and it will do the trick and copy all the files you need into the right place.
+Then just serve the web folder out via a python or php server as you please.
 
 ## Side notes about the game
 
-If you have interest in seeing how this game was made from start to finish, then you can read the full dev blog here https://peetseater.space/blag/2026-05-25-miku-miku-tower-defense
+If you have interest in seeing how this game was made from start to finish, then you can read the full dev blog here https://peetseater.space/blag/2026-05-25-miku-miku-tower-defense and the wasm specific work is covered [here](https://peetseater.space/blag/2026-06-19-wasm)
 
 If you want to play your own music while in the game, then title the wav files 1.wav, 2.wav, etc up to 999.wav into the assets/audio/cc-vocaloid folder.
+Supported file types are whatever sdl3 supports, so see the console output when the game loads to check that out.
 
 There is no audio controls in the game, so turn it down and then up as needed. 
 
