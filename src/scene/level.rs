@@ -173,7 +173,7 @@ impl Health {
 
     fn increase(&mut self, amount: u32) {
         self.current = self.current.saturating_add(amount as u8);
-        self.max += self.max.saturating_add(amount as u8);
+        self.max = self.max.saturating_add(amount as u8);
     }
 }
 
