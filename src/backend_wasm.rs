@@ -561,7 +561,7 @@ impl BackendEventLoop for EventLoopWasm {
                 let mut mouse_info = MouseInfo::from(&event, &canvas);
                 // invert because we're unclicking
                 mouse_info.left_pressed = mouse_info.left_pressed.map(|_| false);
-                mouse_info.right_pressed.map(|_| false);
+                mouse_info.right_pressed = mouse_info.right_pressed.map(|_| false);
                 *mouse.borrow_mut() = mouse_info;
             });
             self.canvas
